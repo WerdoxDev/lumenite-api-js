@@ -1,0 +1,11 @@
+{
+  "name": "lumenite-api",
+  "version": "0.0.1",
+  "description": "an api/helper for working with lumenite-core",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1" 
+  },
+  "author": "WerdoxDev",
+  "license": "ISC"
+}
