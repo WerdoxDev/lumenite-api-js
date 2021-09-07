@@ -2,10 +2,14 @@
   "name": "lumenite-api",
   "version": "0.0.1",
   "description": "an api/helper for working with lumenite-core",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1" 
+    "start": "npx ts-node src/test.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "WerdoxDev",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "mqtt": "^4.2.8",
+    "ts-node": "^10.2.1"
+  }
 }
