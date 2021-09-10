@@ -5,8 +5,10 @@ import {
   ClientInitializePayload,
   ClientSetConnectedPayload,
   ClientSetDevicesPayload,
+  Command,
   DeviceType,
   GatewayOptions,
+  OutputDevice,
 } from "./types";
 import { checkTopic, emptyStatus, getRandomId, parseJson } from "./utils";
 
@@ -21,7 +23,11 @@ export async function connect(options: GatewayOptions) {
   const mqttOptions: mqtt.IClientOptions = {
     host: options.url,
     port: options.port,
+    username: options.username,
+    password: options.password,
+    protocol: options.protocol,
     keepalive: 15,
+    clientId: id,
     will: {
       topic: `client/offline`,
       payload: id,
@@ -53,7 +59,7 @@ export async function defaultSubscribe() {
     client.on("message", (topic, message) => {
       console.log(topic + ": " + message.toString());
       if (checkTopic(topic, "server/connect")) {
-        client.publish(`client/connect`, id);
+        client.publish("client/connect", id);
       } else if (checkTopic(topic, "server/offline")) {
       } else if (checkTopic(topic, "client/initialize", 1)) {
         let payload: ClientInitializePayload = parseJson(message.toString());
@@ -65,6 +71,12 @@ export async function defaultSubscribe() {
         let payload: ClientSetDevicesPayload = parseJson(message.toString());
         moduleClientSetDevices(payload);
         resolve(0);
+      } else if(checkTopic(topic, "module/execute-client-command", 1)){
+        let command: Command = parseJson(message.toString());
+        const device = devices.find(x => x.id === command.deviceId);
+        if(device){
+          device.executeCommand(command);
+        }
       }
     });
   });
@@ -74,7 +86,7 @@ function clientInitialize(payload: ClientInitializePayload) {
   payload.devices.forEach((x) => {
     if (x.type === DeviceType.RgbLight) throw new Error("RgbLight is not implemented yet!");
     else {
-      let device = new OutputDeviceClass(x.id, x.name, x.type, x.status, x.config, x.settings);
+      let device = new OutputDeviceClass(x.id, x.name, x.type, x.status, x.config, (x as OutputDevice).settings);
       devices.push(device);
     }
   });
@@ -92,7 +104,7 @@ function clientSetConnected(payload: ClientSetConnectedPayload) {
   connectedModules = payload[1];
 }
 
-function moduleClientSetDevices(payload) {
+function moduleClientSetDevices(payload: ClientSetDevicesPayload) {
   devices.forEach((x) => {
     var index = payload.findIndex((y) => y.id === x.id);
     x.status = {

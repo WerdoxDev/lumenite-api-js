@@ -1,5 +1,5 @@
 {
-  "name": "lumenite-api",
+  "name": "lumenite-api-js",
   "version": "0.0.1",
   "description": "an api/helper for working with lumenite-core",
   "scripts": {

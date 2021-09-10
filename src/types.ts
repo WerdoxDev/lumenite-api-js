@@ -64,6 +64,9 @@ export type AutomaticTimings = Array<AutomaticTiming>;
 export interface GatewayOptions {
   url: string;
   port: number;
+  username: string;
+  password: string;
+  protocol: "ws" | "wss" | "mqtt" | "mqtts";
 }
 
 export interface ClientConfiguration {
@@ -77,7 +80,7 @@ export interface ChangeDeviceStatusPayload {
 }
 
 export interface ClientInitializePayload {
-  devices: Array<OutputDevice>;
+  devices: Array<BaseDevice>;
   config: ClientConfiguration;
 }
 
@@ -104,7 +107,9 @@ export interface Command {
 
 export type ClientSetConnectedPayload = Array<number>;
 
-export interface ClientSetDevicesPayload {
+export type ClientSetDevicesPayload = Array<SetDevicesPayload>;
+
+export interface SetDevicesPayload {
   id: number;
   status: DeviceStatus;
 }
@@ -112,6 +117,7 @@ export interface ClientSetDevicesPayload {
 export enum DeviceType {
   None = "NONE",
   OutputDevice = "OUTPUT_DEVICE",
+  InputDevice = "INPUT_DEVICE",
   RgbLight = "RGB_LIGHT",
   TemperatureSensor = "TEMPERATURE_SENSOR",
 }

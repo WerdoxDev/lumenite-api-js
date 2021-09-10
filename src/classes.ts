@@ -1,18 +1,17 @@
-import { client } from "./gateway";
+import {client} from "./gateway";
 import {
-  OutputDevice,
-  OutputSettings,
+  BaseDevice,
+  Command,
+  CommandType,
   DeviceConfiguration,
   DeviceStatus,
   DeviceType,
-  StatusType,
-  ChangeDeviceStatusPayload,
-  Command,
-  CommandType,
+  OutputDevice,
+  OutputSettings,
   Status,
-  BaseDevice,
+  StatusType,
 } from "./types";
-import { emptyStatus, stringJson } from "./utils";
+import {emptyStatus, parseJson, stringJson} from "./utils";
 
 export class BaseDeviceClass implements BaseDevice {
   config: DeviceConfiguration;
@@ -31,12 +30,10 @@ export class BaseDeviceClass implements BaseDevice {
 
   setPower(power: StatusType) {
     this.futureStatus.power = power;
-    console.log("1: " + this.currentStatus.power + " " + this.lastStatus.power);
     var temp = this.currentStatus;
     Object.freeze(temp);
     this.currentStatus = this.lastStatus;
     this.lastStatus = temp;
-    console.log("2: " + this.currentStatus.power + " " + this.lastStatus.power);
 
     var command: Command = {
       id: CommandType.Power,
@@ -46,20 +43,18 @@ export class BaseDeviceClass implements BaseDevice {
     client.publish(`module/${this.config.moduleToken}/execute-command`, stringJson(command));
   }
 
-  //   setStatus(futureStatus: Status, currentStatus: Status, lastStatus: Status): boolean {
-  //     if (!this.isInValidState) return false;
-  //     this.futureStatus = futureStatus;
-  //     this.currentStatus = currentStatus;
-  //     this.lastStatus = lastStatus;
-  //     var command: Command = {
-  //       id: CommandType.Power,
-  //       deviceId: this.id,
-  //       payload: [stringJson(this.futureStatus), stringJson(this.lastStatus)],
-  //     };
+  togglePower(){
+    this.setPower(this.oppositePower(this.currentStatus));
+  }
 
-  //     store.state.mqtt?.publish(`module/${this.config.moduleToken}/execute-command`, stringJson(command));
-  //     return true;
-  //   }
+  executeCommand(command: Command){
+    if(!this.config.validCommands.find(x => x === command.id)) throw new Error("Command is not valid for device");
+
+    if(command.id === CommandType.PowerChanged){
+      this.currentStatus = parseJson(command.payload[0]);
+      console.log("STATUS CHANGED");
+    }
+  }
 
   get isInValidState() {
     var currentStatus = this.currentStatus;
@@ -97,8 +92,8 @@ export class BaseDeviceClass implements BaseDevice {
   }
 
   // Only works with devices that have ON and OFF as status
-  oppositePower(power: StatusType): StatusType {
-    return power === StatusType.On ? StatusType.Off : StatusType.On;
+  oppositePower(status: Status): StatusType {
+    return status.power === StatusType.On ? StatusType.Off : StatusType.On;
   }
 }
 
