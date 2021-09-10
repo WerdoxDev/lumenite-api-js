@@ -1,3 +1,4 @@
+//#region Device types
 export interface Device {
   readonly id: number;
   name: string;
@@ -14,7 +15,9 @@ export interface InputDevice extends BaseDevice {}
 export interface OutputDevice extends BaseDevice {
   settings: OutputSettings;
 }
+//#endregion
 
+//#region Device properties
 export interface DeviceConfiguration {
   pinConfig: PinConfiguration;
   moduleToken: string;
@@ -41,6 +44,9 @@ export interface OutputSettings {
   timeoutTime: number;
 }
 
+//#endregion
+
+//#region Automatic related
 export interface AutomaticTiming {
   id: number;
   name: string;
@@ -60,19 +66,9 @@ export interface AutomaticWeekday {
 }
 
 export type AutomaticTimings = Array<AutomaticTiming>;
+//#endregion
 
-export interface GatewayOptions {
-  url: string;
-  port: number;
-  username: string;
-  password: string;
-  protocol: "ws" | "wss" | "mqtt" | "mqtts";
-}
-
-export interface ClientConfiguration {
-  registeredModuleTokens: Array<string>;
-}
-
+//#region Payload types
 export interface ChangeDeviceStatusPayload {
   id: number;
   type: DeviceType;
@@ -98,13 +94,6 @@ export interface ModuleDeviceStatusPayload {
   };
 }
 
-// 0: Power command. Payload: 0 or 1.
-export interface Command {
-  id: number;
-  deviceId: number;
-  payload: Array<string>;
-}
-
 export type ClientSetConnectedPayload = Array<number>;
 
 export type ClientSetDevicesPayload = Array<SetDevicesPayload>;
@@ -113,6 +102,31 @@ export interface SetDevicesPayload {
   id: number;
   status: DeviceStatus;
 }
+
+//#endregion
+
+//#region Other
+export interface GatewayOptions {
+  url: string;
+  port: number;
+  username: string;
+  password: string;
+  protocol: "ws" | "wss" | "mqtt" | "mqtts";
+}
+
+export interface ClientConfiguration {
+  registeredModuleTokens: Array<string>;
+}
+
+export interface Command {
+  id: number;
+  deviceId: number;
+  payload: Array<string>;
+}
+
+//#endregion
+
+//#region Enums
 
 export enum DeviceType {
   None = "NONE",
@@ -133,3 +147,4 @@ export enum CommandType {
   Power = 0,
   PowerChanged = 1,
 }
+//#endregion

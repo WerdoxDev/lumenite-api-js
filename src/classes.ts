@@ -1,4 +1,4 @@
-import {client} from "./gateway";
+import { MqttClient } from "mqtt";
 import {
   BaseDevice,
   Command,
@@ -11,18 +11,24 @@ import {
   Status,
   StatusType,
 } from "./types";
-import {emptyStatus, parseJson, stringJson} from "./utils";
+import { emptyStatus, parseJson, stringJson } from "./utils";
 
 export class BaseDeviceClass implements BaseDevice {
-  config: DeviceConfiguration;
   readonly id: number;
+  config: DeviceConfiguration;
   name: string;
-  status?: DeviceStatus | undefined;
   type: DeviceType;
+  status?: DeviceStatus | undefined;
 
-  constructor(id: number, name: string, type: DeviceType, status: DeviceStatus | undefined, config: DeviceConfiguration) {
+  constructor(
+    id: number,
+    name: string,
+    type: DeviceType,
+    status: DeviceStatus | undefined,
+    config: DeviceConfiguration,
+    private mqttClient: MqttClient
+  ) {
     this.id = id;
-    this.name = name;
     this.type = type;
     this.status = status;
     this.config = config;
@@ -40,17 +46,17 @@ export class BaseDeviceClass implements BaseDevice {
       deviceId: this.id,
       payload: [stringJson(this.futureStatus), stringJson(this.lastStatus)],
     };
-    client.publish(`module/${this.config.moduleToken}/execute-command`, stringJson(command));
+    this.mqttClient.publish(`module/${this.config.moduleToken}/execute-command`, stringJson(command));
   }
 
-  togglePower(){
+  togglePower() {
     this.setPower(this.oppositePower(this.currentStatus));
   }
 
-  executeCommand(command: Command){
-    if(!this.config.validCommands.find(x => x === command.id)) throw new Error("Command is not valid for device");
+  executeCommand(command: Command) {
+    if (!this.config.validCommands.find((x) => x === command.id)) throw new Error("Command is not valid for device");
 
-    if(command.id === CommandType.PowerChanged){
+    if (command.id === CommandType.PowerChanged) {
       this.currentStatus = parseJson(command.payload[0]);
       console.log("STATUS CHANGED");
     }
@@ -106,9 +112,10 @@ export class OutputDeviceClass extends BaseDeviceClass implements OutputDevice {
     type: DeviceType,
     status: DeviceStatus | undefined,
     config: DeviceConfiguration,
-    settings: OutputSettings
+    settings: OutputSettings,
+    mqttClient: MqttClient
   ) {
-    super(id, name, type, status, config);
+    super(id, name, type, status, config, mqttClient);
     this.settings = settings;
   }
 }

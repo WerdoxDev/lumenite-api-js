@@ -1,5 +1,5 @@
 import { BaseDeviceClass, OutputDeviceClass } from "./classes";
-import { getDeviceById, login } from "./client";
+import { Client } from "./client";
 import { GatewayOptions, StatusType } from "./types";
 
 (async function () {
@@ -8,14 +8,16 @@ import { GatewayOptions, StatusType } from "./types";
     port: 8883,
     protocol: "mqtts",
     username: "lumenite",
-    password: "Lumenite2021"
+    password: "Lumenite2021",
   };
 
-  await login(options);
+  var client: Client = new Client(options);
 
-  const device = getDeviceById<BaseDeviceClass>(1);
+  await client.login();
+
+  const device = client.deviceById<BaseDeviceClass>(1);
   let power = 0;
-    // device.setPower(StatusType.Off);
+  // device.setPower(StatusType.Off);
   setInterval(() => {
     device.setPower(power);
     power = power === 1 ? 0 : 1;

@@ -21,6 +21,15 @@ export function getRandomId() {
   return id;
 }
 
+export function emptyStatus(type?: DeviceType): Status {
+  var value: Status = {
+    power: StatusType.Offline,
+  };
+  if (type === DeviceType.RgbLight) {
+    value = Object.assign(value, { redValue: 0, greenValue: 0, blueValue: 0 });
+  }
+  return value;
+}
 export function checkTopic(topic: string, match: string, ...ignores: Array<number>) {
   var splitTopic = topic.split("/");
   for (let i = 0; i < ignores.length; i++) {
@@ -40,14 +49,4 @@ export function stringJson(json: object) {
 
 export function parseJson(string: string) {
   return JSON.parse(string);
-}
-
-export function emptyStatus(type?: DeviceType): Status {
-  var value: Status = {
-    power: StatusType.Offline,
-  };
-  if (type === DeviceType.RgbLight) {
-    value = Object.assign(value, { redValue: 0, greenValue: 0, blueValue: 0 });
-  }
-  return value;
 }

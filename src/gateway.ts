@@ -1,5 +1,6 @@
-import mqtt from "mqtt";
+import mqtt, { IClientOptions, MqttClient } from "mqtt";
 import { BaseDeviceClass, OutputDeviceClass } from "./classes";
+import { Client } from "./client";
 import {
   ClientConfiguration,
   ClientInitializePayload,
@@ -12,109 +13,124 @@ import {
 } from "./types";
 import { checkTopic, emptyStatus, getRandomId, parseJson } from "./utils";
 
-const id = getRandomId();
-export var client: mqtt.Client;
-var config: ClientConfiguration;
-var devices: Array<BaseDeviceClass> = [];
-var connctedClients = 0,
-  connectedModules = 0;
+export class Gateway {
+  public readonly id = getRandomId();
+  private readonly client: Client;
+  private readonly options: GatewayOptions;
+  private mqttClient: MqttClient;
+  private config: ClientConfiguration;
+  private _connectedClients = 0;
+  private _connectedModules = 0;
 
-export async function connect(options: GatewayOptions) {
-  const mqttOptions: mqtt.IClientOptions = {
-    host: options.url,
-    port: options.port,
-    username: options.username,
-    password: options.password,
-    protocol: options.protocol,
-    keepalive: 15,
-    clientId: id,
-    will: {
-      topic: `client/offline`,
-      payload: id,
-      qos: 0,
-      retain: false,
-    },
-    // protocol: "mqtts",
-  };
+  constructor(client: Client) {
+    this.client = client;
+    this.options = client.options;
+  }
 
-  await new Promise((resolve, reject) => {
-    client = mqtt.connect(mqttOptions);
-    client.on("connect", async () => {
-      client.publish(`client/connect`, id);
-      await defaultSubscribe();
-      resolve(0);
-    });
-  });
-}
+  async connect() {
+    const mqttOptions: IClientOptions = {
+      host: this.options.url,
+      port: this.options.port,
+      username: this.options.username,
+      password: this.options.password,
+      protocol: this.options.protocol,
+      keepalive: 15,
+      clientId: this.id,
+      will: {
+        topic: `client/offline`,
+        payload: this.id,
+        qos: 0,
+        retain: false,
+      },
+    };
 
-export async function defaultSubscribe() {
-  if (!client.connected) return;
-
-  client.subscribe(`client/${id}/set-connected`);
-  client.subscribe(`client/${id}/initialize`);
-  client.subscribe("server/connect");
-  client.subscribe("server/offline");
-
-  await new Promise((resolve, reject) => {
-    client.on("message", (topic, message) => {
-      console.log(topic + ": " + message.toString());
-      if (checkTopic(topic, "server/connect")) {
-        client.publish("client/connect", id);
-      } else if (checkTopic(topic, "server/offline")) {
-      } else if (checkTopic(topic, "client/initialize", 1)) {
-        let payload: ClientInitializePayload = parseJson(message.toString());
-        clientInitialize(payload);
-      } else if (checkTopic(topic, "client/set-connected", 1)) {
-        let payload: ClientSetConnectedPayload = parseJson(message.toString());
-        clientSetConnected(payload);
-      } else if (checkTopic(topic, "module/client/set-devices", 1, 3)) {
-        let payload: ClientSetDevicesPayload = parseJson(message.toString());
-        moduleClientSetDevices(payload);
+    await new Promise((resolve) => {
+      this.mqttClient = mqtt.connect(mqttOptions);
+      this.mqttClient.on("connect", async () => {
+        this.mqttClient.publish(`client/connect`, this.id);
+        await this.defaultSubscribe();
         resolve(0);
-      } else if(checkTopic(topic, "module/execute-client-command", 1)){
-        let command: Command = parseJson(message.toString());
-        const device = devices.find(x => x.id === command.deviceId);
-        if(device){
-          device.executeCommand(command);
+      });
+    });
+  }
+
+  private async defaultSubscribe() {
+    if (!this.mqttClient.connected) return;
+
+    this.mqttClient.subscribe(`client/${this.id}/set-connected`);
+    this.mqttClient.subscribe(`client/${this.id}/initialize`);
+    this.mqttClient.subscribe("server/connect");
+    this.mqttClient.subscribe("server/offline");
+
+    await new Promise((resolve) => {
+      this.mqttClient.on("message", (topic, message) => {
+        console.log(topic + ": " + message.toString());
+        if (checkTopic(topic, "server/connect")) {
+          this.mqttClient.publish("client/connect", this.id);
+        } else if (checkTopic(topic, "server/offline")) {
+        } else if (checkTopic(topic, "client/initialize", 1)) {
+          let payload: ClientInitializePayload = parseJson(message.toString());
+          this.clientInitialize(payload);
+        } else if (checkTopic(topic, "client/set-connected", 1)) {
+          let payload: ClientSetConnectedPayload = parseJson(message.toString());
+          this.clientSetConnected(payload);
+        } else if (checkTopic(topic, "module/client/set-devices", 1, 3)) {
+          let payload: ClientSetDevicesPayload = parseJson(message.toString());
+          this.moduleClientSetDevices(payload);
+          resolve(0);
+        } else if (checkTopic(topic, "module/execute-client-command", 1)) {
+          let command: Command = parseJson(message.toString());
+          const device = this.client.devices.find((x) => x.id === command.deviceId);
+          if (device) {
+            device.executeCommand(command);
+          }
         }
+      });
+    });
+  }
+
+  private clientInitialize(payload: ClientInitializePayload) {
+    var devices: Array<BaseDeviceClass> = [];
+    payload.devices.forEach((x) => {
+      if (x.type === DeviceType.RgbLight) throw new Error("RgbLight is not implemented yet!");
+      else {
+        let device = new OutputDeviceClass(x.id, x.name, x.type, x.status, x.config, (x as OutputDevice).settings, this.mqttClient);
+        devices.push(device);
       }
     });
-  });
-}
+    this.config = payload.config;
+    this.config.registeredModuleTokens.forEach((x) => {
+      this.mqttClient.subscribe(`module/${x}/execute-client-command`);
+      this.mqttClient.subscribe(`module/${x}/device-settings-changed`);
+      this.mqttClient.subscribe(`module/${x}/client/${this.id}/set-devices`);
+    });
+    this.mqttClient.publish(`client/${this.id}/initialize-finished`, "");
+    this.client.devices = devices;
+  }
 
-function clientInitialize(payload: ClientInitializePayload) {
-  payload.devices.forEach((x) => {
-    if (x.type === DeviceType.RgbLight) throw new Error("RgbLight is not implemented yet!");
-    else {
-      let device = new OutputDeviceClass(x.id, x.name, x.type, x.status, x.config, (x as OutputDevice).settings);
-      devices.push(device);
-    }
-  });
-  config = payload.config;
-  config.registeredModuleTokens.forEach((x) => {
-    client.subscribe(`module/${x}/execute-client-command`);
-    client.subscribe(`module/${x}/device-settings-changed`);
-    client.subscribe(`module/${x}/client/${id}/set-devices`);
-  });
-  client.publish(`client/${id}/initialize-finished`, "");
-}
+  private clientSetConnected(payload: ClientSetConnectedPayload) {
+    this._connectedClients = payload[0];
+    this._connectedModules = payload[1];
+  }
 
-function clientSetConnected(payload: ClientSetConnectedPayload) {
-  connctedClients = payload[0];
-  connectedModules = payload[1];
-}
+  private moduleClientSetDevices(payload: ClientSetDevicesPayload) {
+    var devices = [...this.client.devices];
+    devices.forEach((x) => {
+      var index = payload.findIndex((y) => y.id === x.id);
+      x.status = {
+        futureStatus: emptyStatus(),
+        currentStatus: payload[index].status?.currentStatus || emptyStatus(),
+        lastStatus: emptyStatus(),
+      };
+    });
+    this.client.devices = devices;
+  }
 
-function moduleClientSetDevices(payload: ClientSetDevicesPayload) {
-  devices.forEach((x) => {
-    var index = payload.findIndex((y) => y.id === x.id);
-    x.status = {
-      futureStatus: emptyStatus(),
-      currentStatus: payload[index].status?.currentStatus || emptyStatus(),
-      lastStatus: emptyStatus(),
-    };
-  });
-}
+  get connectedModules() {
+    return this._connectedModules;
+  }
 
-export function getDevices() {
-  return devices;
+  get connectedClients() {
+    return this._connectedClients;
+  }
 }
