@@ -1,7 +1,9 @@
 {
   "name": "lumenite-api-js",
-  "version": "1.1.0",
+  "version": "1.0.0",
   "description": "an api/helper for working with lumenite-core",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "files": [
     "lib/**/*"
   ],
