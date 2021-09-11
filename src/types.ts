@@ -66,6 +66,24 @@ export interface AutomaticWeekday {
 }
 
 export type AutomaticTimings = Array<AutomaticTiming>;
+
+export interface CalendarDate {
+  index: number;
+  date: number;
+  day: number;
+  month: number;
+  timestamp: number;
+  dayString: string;
+  isDiffMonth: boolean;
+  isToday: boolean;
+  selected: boolean;
+}
+
+export interface Calendar {
+  selectedDates: Array<number>;
+  month: number;
+  year: number;
+}
 //#endregion
 
 //#region Payload types
@@ -122,6 +140,12 @@ export interface Command {
   id: number;
   deviceId: number;
   payload: Array<string>;
+}
+
+export interface Time {
+  hour: number;
+  minute: number;
+  second: number;
 }
 
 //#endregion

@@ -1,4 +1,4 @@
-import { DeviceType, Status, StatusType } from "./types";
+import { DeviceType, OutputSettings, Status, StatusType, Time } from "./types";
 
 var generatedIds: Array<string> = [];
 
@@ -19,6 +19,40 @@ export function getRandomId() {
   }
 
   return id;
+}
+
+export function emptyTime(): Time {
+  return {
+    hour: 0,
+    minute: 0,
+    second: 0,
+  };
+}
+
+export function emptySettings(type?: DeviceType): OutputSettings {
+  var value: OutputSettings = {
+    automaticTimings: [],
+    timeoutTime: 3000,
+  };
+  return value;
+}
+
+export function getMsFromTime(time: Time | undefined) {
+  if (!time) return 0;
+  return time.hour * 3600000 + time.minute * 60000 + time.second * 1000;
+}
+
+export function getTimeFromMs(ms: number) {
+  var time: Time = { hour: 0, minute: 0, second: 0 };
+  var seconds = Math.floor((ms / 1000) % 60),
+    minutes = Math.floor((ms / (1000 * 60)) % 60),
+    hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
+
+  time.hour = hours;
+  time.minute = minutes;
+  time.second = seconds;
+
+  return time;
 }
 
 export function emptyStatus(type?: DeviceType): Status {

@@ -29,6 +29,7 @@ export class BaseDeviceClass implements BaseDevice {
     private mqttClient: MqttClient
   ) {
     this.id = id;
+    this.name = name;
     this.type = type;
     this.status = status;
     this.config = config;

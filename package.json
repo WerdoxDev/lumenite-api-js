@@ -1,9 +1,9 @@
 {
   "name": "lumenite-api-js",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "an api/helper for working with lumenite-core",
   "scripts": {
-    "start": "npx ts-node src/test.ts"
+    "test": "npx ts-node src/test.ts"
   },
   "author": "WerdoxDev",
   "license": "ISC",

@@ -4,11 +4,11 @@ import { GatewayOptions, StatusType } from "./types";
 
 (async function () {
   const options: GatewayOptions = {
-    url: "211b94aa7734472e8c384db21d25fc6d.s2.eu.hivemq.cloud",
+    url: "mqtt.flespi.io",
     port: 8883,
     protocol: "mqtts",
-    username: "lumenite",
-    password: "Lumenite2021",
+    username: "51KUQ6PcUOCnRo3fwEQO5efDsCcLOhBI89sM55PQJh1pwUuQmauffyGvYH5COu8M",
+    password: "",
   };
 
   var client: Client = new Client(options);
