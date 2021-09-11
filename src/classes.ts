@@ -23,14 +23,14 @@ export class BaseDeviceClass implements BaseDevice {
     this.config = config;
   }
 
-  setPower(power: StatusType) {
+  setPower(power: StatusType): void {
     this.futureStatus.power = power;
-    var temp = this.currentStatus;
+    const temp = this.currentStatus;
     Object.freeze(temp);
     this.currentStatus = this.lastStatus;
     this.lastStatus = temp;
 
-    var command: Command = {
+    const command: Command = {
       id: CommandType.Power,
       deviceId: this.id,
       payload: [stringJson(this.futureStatus), stringJson(this.lastStatus)],
@@ -38,11 +38,11 @@ export class BaseDeviceClass implements BaseDevice {
     this.mqttClient.publish(`module/${this.config.moduleToken}/execute-command`, stringJson(command));
   }
 
-  togglePower() {
+  togglePower(): void {
     this.setPower(this.oppositePower(this.currentStatus));
   }
 
-  executeCommand(command: Command) {
+  executeCommand(command: Command): void {
     if (!this.config.validCommands.find((x) => x === command.id)) throw new Error("Command is not valid for device");
 
     if (command.id === CommandType.PowerChanged) {
@@ -51,8 +51,8 @@ export class BaseDeviceClass implements BaseDevice {
     }
   }
 
-  get isInValidState() {
-    var currentStatus = this.currentStatus;
+  get isInValidState(): boolean {
+    const currentStatus = this.currentStatus;
     return currentStatus.power !== StatusType.Offline && currentStatus.power !== StatusType.Processing;
   }
 
@@ -120,7 +120,7 @@ export interface BaseDevice extends Device {
   config: DeviceConfiguration;
 }
 
-export interface InputDevice extends BaseDevice {}
+// export interface InputDevice extends BaseDevice {}
 
 export interface OutputDevice extends BaseDevice {
   settings: OutputSettings;

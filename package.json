@@ -2,9 +2,18 @@
   "name": "lumenite-api-js",
   "version": "1.0.0",
   "description": "an api/helper for working with lumenite-core",
+  "files": [
+    "lib/**/*"
+  ],
   "scripts": {
-    "test": "npx ts-node src/test.ts",
-    "build": "tsc"
+    "test": "jest --config jest.config.js",
+    "build": "tsc",
+    "lint": "eslint src",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run lint",
+    "preversion": "npm run lint",
+    "version": "git add -A src",
+    "postversion": "git push && git push --tags"
   },
   "author": "WerdoxDev",
   "license": "ISC",
@@ -13,7 +22,12 @@
     "ts-node": "^10.2.1"
   },
   "devDependencies": {
+    "@types/jest": "^27.0.1",
     "@types/ws": "^7.4.7",
+    "@typescript-eslint/eslint-plugin": "^4.31.0",
+    "@typescript-eslint/parser": "^4.31.0",
+    "eslint": "^7.32.0",
+    "ts-jest": "^27.0.5",
     "typescript": "^4.4.3"
   }
 }

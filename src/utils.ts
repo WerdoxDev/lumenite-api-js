@@ -1,19 +1,19 @@
 import { Time, DeviceType, OutputSettings, Status, StatusType } from "./classes";
 
-var generatedIds: Array<string> = [];
+const generatedIds: Array<string> = [];
 
-export function getRandomId() {
+export function getRandomId(): string {
   function generate() {
-    var result = "";
-    var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    var charactersLength = characters.length;
-    for (var i = 0; i < 16; i++) {
+    let result = "";
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    const charactersLength = characters.length;
+    for (let i = 0; i < 16; i++) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
   }
 
-  var id = generate();
+  let id = generate();
   while (generatedIds.some((x) => x === id)) {
     id = generate();
   }
@@ -29,22 +29,23 @@ export function emptyTime(): Time {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function emptySettings(type?: DeviceType): OutputSettings {
-  var value: OutputSettings = {
+  const value: OutputSettings = {
     automaticTimings: [],
     timeoutTime: 3000,
   };
   return value;
 }
 
-export function getMsFromTime(time: Time | undefined) {
+export function getMsFromTime(time: Time | undefined): number {
   if (!time) return 0;
   return time.hour * 3600000 + time.minute * 60000 + time.second * 1000;
 }
 
-export function getTimeFromMs(ms: number) {
-  var time: Time = { hour: 0, minute: 0, second: 0 };
-  var seconds = Math.floor((ms / 1000) % 60),
+export function getTimeFromMs(ms: number): Time {
+  const time: Time = { hour: 0, minute: 0, second: 0 };
+  const seconds = Math.floor((ms / 1000) % 60),
     minutes = Math.floor((ms / (1000 * 60)) % 60),
     hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
 
@@ -56,7 +57,7 @@ export function getTimeFromMs(ms: number) {
 }
 
 export function emptyStatus(type?: DeviceType): Status {
-  var value: Status = {
+  let value: Status = {
     power: StatusType.Offline,
   };
   if (type === DeviceType.RgbLight) {
@@ -64,8 +65,8 @@ export function emptyStatus(type?: DeviceType): Status {
   }
   return value;
 }
-export function checkTopic(topic: string, match: string, ...ignores: Array<number>) {
-  var splitTopic = topic.split("/");
+export function checkTopic(topic: string, match: string, ...ignores: Array<number>): boolean {
+  const splitTopic = topic.split("/");
   for (let i = 0; i < ignores.length; i++) {
     if (i > 0) {
       splitTopic.splice(ignores[i] - ignores[i - 1], 1);
@@ -73,14 +74,16 @@ export function checkTopic(topic: string, match: string, ...ignores: Array<numbe
       splitTopic.splice(ignores[i], 1);
     }
   }
-  var newTopic = splitTopic.join("/");
+  const newTopic = splitTopic.join("/");
   return newTopic === match;
 }
 
-export function stringJson(json: object) {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function stringJson(json: object): string {
   return JSON.stringify(json);
 }
 
-export function parseJson(string: string) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function parseJson(string: string): any {
   return JSON.parse(string);
 }
