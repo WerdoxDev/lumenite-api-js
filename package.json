@@ -2,10 +2,10 @@
   "name": "lumenite-api-js",
   "version": "1.0.1",
   "description": "an api/helper for working with lumenite-core",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "lib/**/*"
+    "dist/**/*"
   ],
   "scripts": {
     "test": "jest --config jest.config.js",
