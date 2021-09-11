@@ -1,23 +1,13 @@
-import mqtt, { IClientOptions, MqttClient } from "mqtt";
-import { BaseDeviceClass, OutputDeviceClass } from "./classes";
-import { Client } from "./client";
-import {
-  ClientConfiguration,
-  ClientInitializePayload,
-  ClientSetConnectedPayload,
-  ClientSetDevicesPayload,
-  Command,
-  DeviceType,
-  GatewayOptions,
-  OutputDevice,
-} from "./types";
+import * as mqtt from "mqtt";
+import { BaseDevice, BaseDeviceClass, Command, DeviceStatus, DeviceType, OutputDevice, OutputDeviceClass, OutputSettings } from "./classes";
+import { Client, ClientConfiguration, GatewayOptions } from "./client";
 import { checkTopic, emptyStatus, getRandomId, parseJson } from "./utils";
 
 export class Gateway {
   public readonly id = getRandomId();
   private readonly client: Client;
   private readonly options: GatewayOptions;
-  private mqttClient: MqttClient;
+  private mqttClient: mqtt.MqttClient;
   private config: ClientConfiguration;
   private _connectedClients = 0;
   private _connectedModules = 0;
@@ -28,7 +18,7 @@ export class Gateway {
   }
 
   async connect() {
-    const mqttOptions: IClientOptions = {
+    const mqttOptions: mqtt.IClientOptions = {
       host: this.options.url,
       port: this.options.port,
       username: this.options.username,
@@ -133,4 +123,38 @@ export class Gateway {
   get connectedClients() {
     return this._connectedClients;
   }
+}
+
+export interface ChangeDeviceStatusPayload {
+  id: number;
+  type: DeviceType;
+  status: DeviceStatus;
+}
+
+export interface ClientInitializePayload {
+  devices: Array<BaseDevice>;
+  config: ClientConfiguration;
+}
+
+export interface ModuleDeviceSettingsPayload {
+  id: number;
+  type: DeviceType;
+  settings: OutputSettings;
+}
+
+export interface ModuleDeviceStatusPayload {
+  id: number;
+  type: DeviceType;
+  status: {
+    currentStatus: number;
+  };
+}
+
+export type ClientSetConnectedPayload = Array<number>;
+
+export type ClientSetDevicesPayload = Array<SetDevicesPayload>;
+
+export interface SetDevicesPayload {
+  id: number;
+  status: DeviceStatus;
 }

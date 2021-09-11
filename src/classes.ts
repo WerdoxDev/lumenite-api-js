@@ -1,16 +1,4 @@
 import { MqttClient } from "mqtt";
-import {
-  BaseDevice,
-  Command,
-  CommandType,
-  DeviceConfiguration,
-  DeviceStatus,
-  DeviceType,
-  OutputDevice,
-  OutputSettings,
-  Status,
-  StatusType,
-} from "./types";
 import { emptyStatus, parseJson, stringJson } from "./utils";
 
 export class BaseDeviceClass implements BaseDevice {
@@ -119,4 +107,119 @@ export class OutputDeviceClass extends BaseDeviceClass implements OutputDevice {
     super(id, name, type, status, config, mqttClient);
     this.settings = settings;
   }
+}
+
+export interface Device {
+  readonly id: number;
+  name: string;
+  status?: DeviceStatus;
+  readonly type: DeviceType;
+}
+
+export interface BaseDevice extends Device {
+  config: DeviceConfiguration;
+}
+
+export interface InputDevice extends BaseDevice {}
+
+export interface OutputDevice extends BaseDevice {
+  settings: OutputSettings;
+}
+//#endregion
+
+//#region Device properties
+export interface DeviceConfiguration {
+  pinConfig: PinConfiguration;
+  moduleToken: string;
+  validCommands: Array<number>;
+}
+
+export interface PinConfiguration {
+  pin: number;
+  pinCheck?: number;
+}
+
+export interface Status {
+  power: number;
+}
+
+export interface DeviceStatus {
+  futureStatus: Status;
+  currentStatus: Status;
+  lastStatus: Status;
+}
+
+export interface OutputSettings {
+  automaticTimings: AutomaticTimings;
+  timeoutTime: number;
+}
+
+export interface AutomaticTiming {
+  id: number;
+  name: string;
+  dates: Array<AutomaticDate>;
+  weekdays: Array<AutomaticWeekday>;
+  // TODO: Add the actual time here later
+}
+
+export interface AutomaticDate {
+  year: number;
+  month: number;
+  date: number;
+}
+
+export interface AutomaticWeekday {
+  day: number;
+}
+
+export type AutomaticTimings = Array<AutomaticTiming>;
+
+export interface CalendarDate {
+  index: number;
+  date: number;
+  day: number;
+  month: number;
+  timestamp: number;
+  dayString: string;
+  isDiffMonth: boolean;
+  isToday: boolean;
+  selected: boolean;
+}
+
+export interface Calendar {
+  selectedDates: Array<number>;
+  month: number;
+  year: number;
+}
+
+export interface Command {
+  id: number;
+  deviceId: number;
+  payload: Array<string>;
+}
+
+export interface Time {
+  hour: number;
+  minute: number;
+  second: number;
+}
+
+export enum DeviceType {
+  None = "NONE",
+  OutputDevice = "OUTPUT_DEVICE",
+  InputDevice = "INPUT_DEVICE",
+  RgbLight = "RGB_LIGHT",
+  TemperatureSensor = "TEMPERATURE_SENSOR",
+}
+
+export enum StatusType {
+  Offline = -2,
+  Processing = -1,
+  Off = 0,
+  On = 1,
+}
+
+export enum CommandType {
+  Power = 0,
+  PowerChanged = 1,
 }

@@ -1,4 +1,3 @@
-import { BaseDevice, GatewayOptions } from "./types";
 import { BaseDeviceClass, OutputDeviceClass } from "./classes";
 import { Gateway } from "./gateway";
 
@@ -34,4 +33,16 @@ export class Client {
     var device = this.devices.find((x) => x.id === id) || this.devices[0];
     return device as T;
   }
+}
+
+export interface GatewayOptions {
+  url: string;
+  port: number;
+  username: string;
+  password: string;
+  protocol: "ws" | "wss" | "mqtt" | "mqtts";
+}
+
+export interface ClientConfiguration {
+  registeredModuleTokens: Array<string>;
 }
