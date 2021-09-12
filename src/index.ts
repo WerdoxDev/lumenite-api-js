@@ -4,6 +4,7 @@ import { BaseDeviceClass } from "./classes";
 export class Client {
   private readonly _devices: Array<BaseDeviceClass> = [];
   public readonly options: GatewayOptions;
+  public config: ClientConfiguration;
   private gateway: Gateway;
 
   constructor(options: GatewayOptions) {
@@ -14,12 +15,11 @@ export class Client {
     this.gateway = new Gateway(this);
     await this.gateway.connect();
 
-    console.log(this.devices.length);
+    this.config = this.gateway.config;
   }
 
   set devices(value: Array<BaseDeviceClass>) {
     this.devices.splice(0, this.devices.length);
-    console.log(value.length + " V");
     value.forEach((x) => {
       this.devices.push(x);
     });

@@ -8,7 +8,7 @@ export class Gateway {
   private readonly client: Client;
   private readonly options: GatewayOptions;
   private mqttClient: mqtt.MqttClient;
-  private config: ClientConfiguration;
+  private _config: ClientConfiguration;
   private _connectedClients = 0;
   private _connectedModules = 0;
 
@@ -55,7 +55,7 @@ export class Gateway {
 
     await new Promise((resolve) => {
       this.mqttClient.on("message", (topic, message) => {
-        console.log(topic + ": " + message.toString());
+        // console.log(topic + ": " + message.toString());
         if (checkTopic(topic, "server/connect")) {
           this.mqttClient.publish("client/connect", this.id);
         } else if (checkTopic(topic, "server/offline")) {
@@ -90,8 +90,8 @@ export class Gateway {
         devices.push(device);
       }
     });
-    this.config = payload.config;
-    this.config.registeredModuleTokens.forEach((x) => {
+    this._config = payload._config;
+    this._config.registeredModuleTokens.forEach((x) => {
       this.mqttClient.subscribe(`module/${x}/execute-client-command`);
       this.mqttClient.subscribe(`module/${x}/device-settings-changed`);
       this.mqttClient.subscribe(`module/${x}/client/${this.id}/set-devices`);
@@ -125,6 +125,10 @@ export class Gateway {
   get connectedClients(): number {
     return this._connectedClients;
   }
+
+  get config(): ClientConfiguration {
+    return this._config;
+  }
 }
 
 export interface ChangeDeviceStatusPayload {
@@ -135,7 +139,7 @@ export interface ChangeDeviceStatusPayload {
 
 export interface ClientInitializePayload {
   devices: Array<BaseDevice>;
-  config: ClientConfiguration;
+  _config: ClientConfiguration;
 }
 
 export interface ModuleDeviceSettingsPayload {
