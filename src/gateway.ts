@@ -1,5 +1,5 @@
 import * as mqtt from "mqtt";
-import { BaseDevice, BaseDeviceClass, Command, DeviceStatus, DeviceType, OutputDevice, OutputDeviceClass, OutputSettings } from "./index";
+import { BaseDevice, BaseDeviceClass, Command, DeviceStatus, DeviceType, OutputDevice, OutputDeviceClass, OutputSettings } from "./classes";
 import { Client, ClientConfiguration, GatewayOptions } from ".";
 import { checkTopic, emptyStatus, getRandomId, parseJson } from "./utils";
 

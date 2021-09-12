@@ -2,8 +2,7 @@
   "name": "lumenite-api-js",
   "version": "1.0.3",
   "description": "an api/helper for working with lumenite-core",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist",
   "files": [
     "dist/**/*"
   ],
