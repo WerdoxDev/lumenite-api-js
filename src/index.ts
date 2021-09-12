@@ -4,7 +4,7 @@ import { BaseDeviceClass } from "./classes";
 export class Client {
   private readonly _devices: Array<BaseDeviceClass> = [];
   public readonly options: GatewayOptions;
-  public config: ClientConfiguration;
+  private _config: ClientConfiguration;
   private gateway: Gateway;
 
   constructor(options: GatewayOptions) {
@@ -15,7 +15,7 @@ export class Client {
     this.gateway = new Gateway(this);
     await this.gateway.connect();
 
-    this.config = this.gateway.config;
+    this._config = this.gateway.config;
   }
 
   set devices(value: Array<BaseDeviceClass>) {
@@ -27,6 +27,10 @@ export class Client {
 
   get devices(): Array<BaseDeviceClass> {
     return this._devices;
+  }
+
+  get config(): ClientConfiguration {
+    return this._config;
   }
 
   deviceById<T extends BaseDeviceClass>(id: number): T {
