@@ -90,7 +90,7 @@ export class Gateway {
         devices.push(device);
       }
     });
-    this._config = payload._config;
+    this._config = payload.config;
     this._config.registeredModuleTokens.forEach((x) => {
       this.mqttClient.subscribe(`module/${x}/execute-client-command`);
       this.mqttClient.subscribe(`module/${x}/device-settings-changed`);
@@ -139,7 +139,7 @@ export interface ChangeDeviceStatusPayload {
 
 export interface ClientInitializePayload {
   devices: Array<BaseDevice>;
-  _config: ClientConfiguration;
+  config: ClientConfiguration;
 }
 
 export interface ModuleDeviceSettingsPayload {
