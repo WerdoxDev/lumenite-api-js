@@ -1,4 +1,4 @@
-import { Time, DeviceType, OutputSettings, Status, StatusType } from "./classes";
+import { Time, DeviceType, OutputSettings, Status, StatusType } from "./index";
 
 const generatedIds: Array<string> = [];
 
