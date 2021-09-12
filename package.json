@@ -3,10 +3,8 @@
   "version": "1.0.5",
   "description": "an api/helper for working with lumenite-core",
   "main": "dist",
-  "types": "module.d.ts",
   "files": [
-    "dist/**/*",
-    "module.d.ts"
+    "dist/**/*"
   ],
   "scripts": {
     "test": "jest --config jest.config.js",
