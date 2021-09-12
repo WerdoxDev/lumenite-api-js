@@ -1,6 +1,6 @@
 {
   "name": "lumenite-api-js",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "an api/helper for working with lumenite-core",
   "main": "dist",
   "types": "module.d.ts",
