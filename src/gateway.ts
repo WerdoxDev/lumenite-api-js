@@ -19,7 +19,8 @@ export class Gateway {
 
   async connect(): Promise<void> {
     const mqttOptions: mqtt.IClientOptions = {
-      host: this.options.url,
+      hostname: this.options.protocol === "wss" || this.options.protocol === "ws" ? this.options.url : undefined,
+      host: this.options.protocol === "mqtts" || this.options.protocol === "mqtt" ? this.options.url : undefined,
       port: this.options.port,
       username: this.options.username,
       password: this.options.password,

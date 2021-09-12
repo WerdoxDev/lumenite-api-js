@@ -37,10 +37,10 @@ export class Client {
 
 export interface GatewayOptions {
   url: string;
-  port: number;
-  username: string;
-  password: string;
-  protocol: "ws" | "wss" | "mqtt" | "mqtts";
+  port?: number;
+  username?: string;
+  password?: string;
+  protocol?: "ws" | "wss" | "mqtt" | "mqtts";
 }
 
 export interface ClientConfiguration {

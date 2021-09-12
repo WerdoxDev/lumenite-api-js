@@ -3,11 +3,10 @@ import { Client, GatewayOptions } from "../index";
 
 (async function () {
   const options: GatewayOptions = {
-    url: "mqtt.flespi.io",
-    port: 8883,
-    protocol: "mqtts",
+    url: "wss://mqtt.flespi.io:443/mqtt",
+    // protocol: "mqtts",
     username: "51KUQ6PcUOCnRo3fwEQO5efDsCcLOhBI89sM55PQJh1pwUuQmauffyGvYH5COu8M",
-    password: "",
+    // password: "",
   };
 
   const client: Client = new Client(options);
