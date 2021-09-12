@@ -1,4 +1,4 @@
-import * as mqtt from "mqtt";
+import mqtt from "mqtt/dist/mqtt.min";
 import { BaseDevice, BaseDeviceClass, Command, DeviceStatus, DeviceType, OutputDevice, OutputDeviceClass, OutputSettings } from "./classes";
 import { Client, ClientConfiguration, GatewayOptions } from ".";
 import { checkTopic, emptyStatus, getRandomId, parseJson } from "./util";
