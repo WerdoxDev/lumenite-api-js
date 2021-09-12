@@ -53,3 +53,4 @@ export interface ClientConfiguration {
 
 export * from "./util";
 export * from "./classes";
+export * from "./gateway";
