@@ -1,5 +1,5 @@
-import { BaseDeviceClass } from "./classes";
 import { Gateway } from "./gateway";
+import { BaseDeviceClass } from "./classes";
 
 export class Client {
   private readonly _devices: Array<BaseDeviceClass> = [];
@@ -47,4 +47,5 @@ export interface ClientConfiguration {
   registeredModuleTokens: Array<string>;
 }
 
-export {};
+export * from "./util";
+export * from "./classes";

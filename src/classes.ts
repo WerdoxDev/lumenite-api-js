@@ -1,5 +1,5 @@
 import { MqttClient } from "mqtt";
-import { stringJson, parseJson, emptyStatus } from "./utils";
+import { stringJson, parseJson, emptyStatus } from "./util";
 
 export class BaseDeviceClass implements BaseDevice {
   readonly id: number;

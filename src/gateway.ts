@@ -1,7 +1,7 @@
 import * as mqtt from "mqtt";
 import { BaseDevice, BaseDeviceClass, Command, DeviceStatus, DeviceType, OutputDevice, OutputDeviceClass, OutputSettings } from "./classes";
 import { Client, ClientConfiguration, GatewayOptions } from ".";
-import { checkTopic, emptyStatus, getRandomId, parseJson } from "./utils";
+import { checkTopic, emptyStatus, getRandomId, parseJson } from "./util";
 
 export class Gateway {
   public readonly id = getRandomId();

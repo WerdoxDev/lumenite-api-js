@@ -1,5 +1,5 @@
 import { BaseDeviceClass } from "../classes";
-import { Client, GatewayOptions } from "..";
+import { Client, GatewayOptions } from "../index";
 
 (async function () {
   const options: GatewayOptions = {
