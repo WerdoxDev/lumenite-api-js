@@ -24,10 +24,11 @@ export class BaseDeviceClass implements BaseDevice {
   }
 
   setPower(power: StatusType): void {
+    if (!this.isInValidState) return;
     this.futureStatus.power = power;
     const temp = this.currentStatus;
     Object.freeze(temp);
-    this.currentStatus = this.lastStatus;
+    this.currentStatus = { power: StatusType.Processing };
     this.lastStatus = temp;
 
     const command: Command = {

@@ -4,7 +4,7 @@ import { Client, GatewayOptions } from "../index";
 (async function () {
   const options: GatewayOptions = {
     url: "wss://mqtt.flespi.io:443/mqtt",
-    // protocol: "mqtts",
+    protocol: "mqtts",
     username: "51KUQ6PcUOCnRo3fwEQO5efDsCcLOhBI89sM55PQJh1pwUuQmauffyGvYH5COu8M",
     // password: "",
   };
