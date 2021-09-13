@@ -2,7 +2,7 @@ import { Gateway, GatewayStatus } from "./gateway";
 import { BaseDeviceClass } from "./classes";
 
 export class Client {
-  public _devices: Array<BaseDeviceClass> = [];
+  private _devices: Array<BaseDeviceClass> = [];
   public options: GatewayOptions;
   public connectedModules: number;
   public connectedClients: number;

@@ -1,4 +1,5 @@
 import mqtt from "mqtt";
+// import * as mqttNode from "mqtt";
 import { BaseDevice, BaseDeviceClass, Command, DeviceStatus, DeviceType, OutputDevice, OutputDeviceClass, OutputSettings } from "./classes";
 import { Client, ClientConfiguration, GatewayOptions } from ".";
 import { checkTopic, emptyStatus, getRandomId, parseJson } from "./util";
@@ -37,6 +38,7 @@ export class Gateway {
         resolve(GatewayStatus.Timeout);
       }, this.timeoutTime);
       this.mqttClient = mqtt.connect(mqttOptions);
+      // else this.mqttClient = mqttNode.connect(mqttOptions);
       this.mqttClient.on("connect", async () => {
         this.mqttClient.publish(`client/connect`, this.id);
         const result = await this.defaultSubscribe();

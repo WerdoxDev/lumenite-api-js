@@ -1,5 +1,4 @@
 import { Time, DeviceType, OutputSettings, Status, StatusType } from "./classes";
-
 const generatedIds: Array<string> = [];
 
 export function getRandomId(): string {
