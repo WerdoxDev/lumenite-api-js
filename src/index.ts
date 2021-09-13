@@ -1,9 +1,12 @@
-import { Gateway } from "./gateway";
+import { Gateway, GatewayStatus } from "./gateway";
 import { BaseDeviceClass } from "./classes";
 
 export class Client {
-  private readonly _devices: Array<BaseDeviceClass> = [];
-  public readonly options: GatewayOptions;
+  public _devices: Array<BaseDeviceClass> = [];
+  public options: GatewayOptions;
+  public connectedModules: number;
+  public connectedClients: number;
+  public totalModules: number;
   private _config: ClientConfiguration;
   private gateway: Gateway;
 
@@ -11,11 +14,10 @@ export class Client {
     this.options = options;
   }
 
-  async login(): Promise<void> {
+  async login(): Promise<GatewayStatus> {
     this.gateway = new Gateway(this);
-    await this.gateway.connect();
-
-    this._config = this.gateway.config;
+    const result = await this.gateway.connect(this.options);
+    return result;
   }
 
   set devices(value: Array<BaseDeviceClass>) {
@@ -27,6 +29,11 @@ export class Client {
 
   get devices(): Array<BaseDeviceClass> {
     return this._devices;
+  }
+
+  set config(value: ClientConfiguration) {
+    this._config = value;
+    this.totalModules = this._config.registeredModuleTokens.length;
   }
 
   get config(): ClientConfiguration {

@@ -1,30 +1,26 @@
-import mqtt from "mqtt/dist/mqtt.min";
+import mqtt from "mqtt";
 import { BaseDevice, BaseDeviceClass, Command, DeviceStatus, DeviceType, OutputDevice, OutputDeviceClass, OutputSettings } from "./classes";
 import { Client, ClientConfiguration, GatewayOptions } from ".";
 import { checkTopic, emptyStatus, getRandomId, parseJson } from "./util";
 
 export class Gateway {
+  private readonly timeoutTime = 5000;
   public readonly id = getRandomId();
   private readonly client: Client;
-  private readonly options: GatewayOptions;
   private mqttClient: mqtt.MqttClient;
-  private _config: ClientConfiguration;
-  private _connectedClients = 0;
-  private _connectedModules = 0;
 
   constructor(client: Client) {
     this.client = client;
-    this.options = client.options;
   }
 
-  async connect(): Promise<void> {
+  async connect(options: GatewayOptions): Promise<GatewayStatus> {
     const mqttOptions: mqtt.IClientOptions = {
-      hostname: this.options.protocol === "wss" || this.options.protocol === "ws" ? this.options.url : undefined,
-      host: this.options.protocol === "mqtts" || this.options.protocol === "mqtt" ? this.options.url : undefined,
-      port: this.options.port,
-      username: this.options.username,
-      password: this.options.password,
-      protocol: this.options.protocol,
+      hostname: options.protocol === "wss" || options.protocol === "ws" ? options.url : undefined,
+      host: options.protocol === "mqtts" || options.protocol === "mqtt" ? options.url : undefined,
+      port: options.port,
+      username: options.username,
+      password: options.password,
+      protocol: options.protocol,
       keepalive: 15,
       clientId: this.id,
       will: {
@@ -35,25 +31,36 @@ export class Gateway {
       },
     };
 
-    await new Promise((resolve) => {
+    let timeout: NodeJS.Timeout;
+    const result = await new Promise<GatewayStatus>((resolve) => {
+      timeout = setTimeout(() => {
+        resolve(GatewayStatus.Timeout);
+      }, this.timeoutTime);
       this.mqttClient = mqtt.connect(mqttOptions);
       this.mqttClient.on("connect", async () => {
         this.mqttClient.publish(`client/connect`, this.id);
-        await this.defaultSubscribe();
-        resolve(0);
+        const result = await this.defaultSubscribe();
+        if (result !== GatewayStatus.Success) resolve(result);
+        resolve(GatewayStatus.Success);
       });
-    });
+      this.mqttClient.on("error", () => {
+        resolve(GatewayStatus.Failed);
+      });
+    }).finally(() => clearTimeout(timeout));
+    return result;
   }
 
-  private async defaultSubscribe() {
-    if (!this.mqttClient.connected) return;
-
+  private async defaultSubscribe(): Promise<GatewayStatus> {
     this.mqttClient.subscribe(`client/${this.id}/set-connected`);
     this.mqttClient.subscribe(`client/${this.id}/initialize`);
     this.mqttClient.subscribe("server/connect");
     this.mqttClient.subscribe("server/offline");
 
-    await new Promise((resolve) => {
+    let timeout: NodeJS.Timeout;
+    const result = await new Promise<GatewayStatus>((resolve) => {
+      timeout = setTimeout(() => {
+        resolve(GatewayStatus.InternalError);
+      }, 2500);
       this.mqttClient.on("message", (topic, message) => {
         // console.log(topic + ": " + message.toString());
         if (checkTopic(topic, "server/connect")) {
@@ -69,7 +76,7 @@ export class Gateway {
         } else if (checkTopic(topic, "module/client/set-devices", 1, 3)) {
           const payload: ClientSetDevicesPayload = parseJson(message.toString());
           this.moduleClientSetDevices(payload);
-          resolve(0);
+          resolve(GatewayStatus.Success);
         } else if (checkTopic(topic, "module/execute-client-command", 1)) {
           const command: Command = parseJson(message.toString());
           const device = this.client.devices.find((x) => x.id === command.deviceId);
@@ -78,7 +85,8 @@ export class Gateway {
           }
         }
       });
-    });
+    }).finally(() => clearTimeout(timeout));
+    return result;
   }
 
   private clientInitialize(payload: ClientInitializePayload) {
@@ -90,8 +98,8 @@ export class Gateway {
         devices.push(device);
       }
     });
-    this._config = payload.config;
-    this._config.registeredModuleTokens.forEach((x) => {
+    this.client.config = payload.config;
+    this.client.config.registeredModuleTokens.forEach((x) => {
       this.mqttClient.subscribe(`module/${x}/execute-client-command`);
       this.mqttClient.subscribe(`module/${x}/device-settings-changed`);
       this.mqttClient.subscribe(`module/${x}/client/${this.id}/set-devices`);
@@ -101,8 +109,8 @@ export class Gateway {
   }
 
   private clientSetConnected(payload: ClientSetConnectedPayload) {
-    this._connectedClients = payload[0];
-    this._connectedModules = payload[1];
+    this.client.connectedClients = payload[0];
+    this.client.connectedModules = payload[1];
   }
 
   private moduleClientSetDevices(payload: ClientSetDevicesPayload) {
@@ -116,18 +124,6 @@ export class Gateway {
       };
     });
     this.client.devices = devices;
-  }
-
-  get connectedModules(): number {
-    return this._connectedModules;
-  }
-
-  get connectedClients(): number {
-    return this._connectedClients;
-  }
-
-  get config(): ClientConfiguration {
-    return this._config;
   }
 }
 
@@ -163,4 +159,11 @@ export type ClientSetDevicesPayload = Array<SetDevicesPayload>;
 export interface SetDevicesPayload {
   id: number;
   status: DeviceStatus;
+}
+
+export enum GatewayStatus {
+  Success = "SUCCESS",
+  Timeout = "TIMEOUT",
+  Failed = "FAILED",
+  InternalError = "INTERNAL_ERROR",
 }

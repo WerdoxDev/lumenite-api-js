@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "test": "jest --config jest.config.js",
+    "test-normal": "npx ts-node src/__tests__/index.test.ts",
     "build": "tsc",
     "lint": "eslint src",
     "prepare": "npm run build",
