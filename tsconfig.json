@@ -6,7 +6,6 @@
     "strict": true,
     "declaration": true,
     "esModuleInterop": true,
-    "outDir": "./lib",
     "strictPropertyInitialization": false
   },
   "include": ["src", "shims-mqtt.d.ts"],

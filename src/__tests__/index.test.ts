@@ -1,4 +1,4 @@
-import { BaseDeviceClass, Client, GatewayOptions } from "../../dist/index";
+import { Client, BaseDeviceClass, GatewayOptions } from "../../dist/main";
 // import { GatewayStatus } from "../gateway";
 // import { Client, GatewayOptions } from "../index";
 
