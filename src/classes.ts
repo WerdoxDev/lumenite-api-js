@@ -1,5 +1,5 @@
-import { MqttClient } from "mqtt";
 import { stringJson, parseJson, emptyStatus } from "./util";
+import mqtt from "mqtt";
 
 export class BaseDeviceClass implements BaseDevice {
   readonly id: number;
@@ -14,7 +14,7 @@ export class BaseDeviceClass implements BaseDevice {
     type: DeviceType,
     status: DeviceStatus | undefined,
     config: DeviceConfiguration,
-    private mqttClient: MqttClient
+    private mqttClient: mqtt.MqttClient
   ) {
     this.id = id;
     this.name = name;
@@ -103,7 +103,7 @@ export class OutputDeviceClass extends BaseDeviceClass implements OutputDevice {
     status: DeviceStatus | undefined,
     config: DeviceConfiguration,
     settings: OutputSettings,
-    mqttClient: MqttClient
+    mqttClient: mqtt.MqttClient
   ) {
     super(id, name, type, status, config, mqttClient);
     this.settings = settings;
