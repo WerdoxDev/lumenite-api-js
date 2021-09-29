@@ -48,7 +48,6 @@ export class BaseDeviceClass implements BaseDevice {
 
     if (command.id === CommandType.PowerChanged) {
       this.currentStatus = parseJson(command.payload[0]);
-      console.log("STATUS CHANGED");
     }
   }
 

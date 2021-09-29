@@ -15,9 +15,9 @@
   ],
   "scripts": {
     "test": "jest --config jest.config.js",
-    "test-normal": "npx ts-node src/__tests__/index.test.ts",
+    "test-normal": "TS_NODE_PROJECT='tsconfig.cjs.json' npx ts-node src/node/command.ts",
     "clean": "rimraf dist",
-    "build": "npm run clean && tsc -p tsconfig.json && tsc -p tsconfig.cjs.json && ./fixup",
+    "build": "npm run clean && tsc -p tsconfig.mjs.json && tsc -p tsconfig.cjs.json && ./fixup",
     "lint": "eslint src",
     "prepare": "npm run build",
     "prepublishOnly": "npm run lint",
@@ -28,7 +28,12 @@
   "author": "WerdoxDev",
   "license": "ISC",
   "dependencies": {
-    "mqtt": "^4.2.8"
+    "@types/mute-stream": "^0.0.1",
+    "chalk": "^4.1.2",
+    "commander": "^8.2.0",
+    "mqtt": "^4.2.8",
+    "mute-stream": "^0.0.8",
+    "restore-cursor": "^4.0.0"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
@@ -39,7 +44,6 @@
     "eslint": "^7.32.0",
     "rimraf": "^3.0.2",
     "ts-jest": "^27.0.5",
-    "ts-node": "^10.2.1",
-    "typescript": "^4.4.3"
+    "ts-node": "^10.2.1"
   }
 }

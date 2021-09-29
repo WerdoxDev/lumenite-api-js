@@ -51,8 +51,10 @@ export interface GatewayOptions {
   port?: number;
   username?: string;
   password?: string;
-  protocol: "ws" | "wss" | "mqtt" | "mqtts";
+  protocol: Protocol;
 }
+
+export type Protocol = "ws" | "wss" | "mqtt" | "mqtts";
 
 export interface ClientConfiguration {
   registeredModuleTokens: Array<string>;

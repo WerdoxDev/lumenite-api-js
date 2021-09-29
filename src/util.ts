@@ -20,6 +20,10 @@ export function getRandomId(): string {
   return id;
 }
 
+export function getRandomInt(max: number): number {
+  return Math.floor(Math.random() * max);
+}
+
 export function emptyTime(): Time {
   return {
     hour: 0,
@@ -85,4 +89,12 @@ export function stringJson(json: object): string {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseJson(string: string): any {
   return JSON.parse(string);
+}
+
+export function addToString(string: string, index: number, stringToAdd: string): string {
+  return string.substring(0, index) + stringToAdd + string.substring(index, string.length);
+}
+
+export function removeFromString(string: string, index: number): string {
+  return string.substring(0, index - 1) + string.substring(index, string.length);
 }
