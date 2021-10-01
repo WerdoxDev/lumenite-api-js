@@ -16,7 +16,7 @@ const prompAnswers: Array<Answer> = [];
 const output = new MuteStream();
 output.pipe(process.stdout);
 
-process.stdin.setRawMode(true);
+if (process.stdin.isTTY) process.stdin.setRawMode(true);
 const input = process.stdin;
 
 readline.emitKeypressEvents(process.stdin);
@@ -222,7 +222,7 @@ input.on("keypress", (str: string, key: Key) => {
     output.write(cursor.show());
     process.exit();
   }
-  if (currentPrompt?.type === "input" || !currentPrompt) {
+  if (currentPrompt.type === "input") {
     const promptLength = currentPrompt ? stripAnsi(currentPrompt.prompt()).length : 0;
     if (key.name === "left") {
       if (currentPrompt) {
