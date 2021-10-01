@@ -222,7 +222,7 @@ input.on("keypress", (str: string, key: Key) => {
     output.write(cursor.show());
     process.exit();
   }
-  if (currentPrompt.type === "input") {
+  if (currentPrompt?.type === "input" || !currentPrompt) {
     const promptLength = currentPrompt ? stripAnsi(currentPrompt.prompt()).length : 0;
     if (key.name === "left") {
       if (currentPrompt) {
