@@ -28,7 +28,6 @@
   "author": "WerdoxDev",
   "license": "ISC",
   "dependencies": {
-    "@types/mute-stream": "^0.0.1",
     "chalk": "^4.1.2",
     "commander": "^8.2.0",
     "mqtt": "^4.2.8",
@@ -39,6 +38,7 @@
     "@types/jest": "^27.0.1",
     "@types/node": "^16.9.1",
     "@types/ws": "^7.4.7",
+    "@types/mute-stream": "^0.0.1",
     "@typescript-eslint/eslint-plugin": "^4.31.1",
     "@typescript-eslint/parser": "^4.31.1",
     "eslint": "^7.32.0",

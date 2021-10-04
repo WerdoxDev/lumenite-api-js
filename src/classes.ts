@@ -1,9 +1,8 @@
-import { stringJson, parseJson, emptyStatus } from "./util";
-import mqtt from "mqtt";
+import { stringJson, parseJson, emptyStatus, buildCommand } from "./util";
 
 export class BaseDeviceClass implements BaseDevice {
   readonly id: number;
-  config: DeviceConfiguration;
+  config: BaseConfiguration;
   name: string;
   type: DeviceType;
   status?: DeviceStatus | undefined;
@@ -13,8 +12,8 @@ export class BaseDeviceClass implements BaseDevice {
     name: string,
     type: DeviceType,
     status: DeviceStatus | undefined,
-    config: DeviceConfiguration,
-    private mqttClient: mqtt.MqttClient
+    config: BaseConfiguration,
+    public mqttClient: import("mqtt").MqttClient
   ) {
     this.id = id;
     this.name = name;
@@ -31,11 +30,7 @@ export class BaseDeviceClass implements BaseDevice {
     this.currentStatus = { power: StatusType.Processing };
     this.lastStatus = temp;
 
-    const command: Command = {
-      id: CommandType.Power,
-      deviceId: this.id,
-      payload: [stringJson(this.futureStatus), stringJson(this.lastStatus)],
-    };
+    const command = buildCommand(CommandType.Power, this.id, [stringJson(this.futureStatus), stringJson(this.lastStatus)]);
     this.mqttClient.publish(`module/${this.config.moduleToken}/execute-command`, stringJson(command));
   }
 
@@ -43,12 +38,20 @@ export class BaseDeviceClass implements BaseDevice {
     this.setPower(this.oppositePower(this.currentStatus));
   }
 
-  executeCommand(command: Command): void {
+  executeCommonCommands(command: Command): boolean {
+    let isExecuted;
     if (!this.config.validCommands.find((x) => x === command.id)) throw new Error("Command is not valid for device");
 
     if (command.id === CommandType.PowerChanged) {
       this.currentStatus = parseJson(command.payload[0]);
+      isExecuted = true;
     }
+
+    return isExecuted;
+  }
+
+  executeCommand(command: Command): void {
+    this.executeCommonCommands(command);
   }
 
   get isInValidState(): boolean {
@@ -58,8 +61,9 @@ export class BaseDeviceClass implements BaseDevice {
 
   get futureStatus(): Status {
     if (this.status !== undefined) return this.status.futureStatus;
-    else return emptyStatus();
+    else return emptyStatus(this.type);
   }
+
   set futureStatus(value: Status) {
     if (this.status !== undefined) {
       this.status.futureStatus = value;
@@ -68,8 +72,9 @@ export class BaseDeviceClass implements BaseDevice {
 
   get currentStatus(): Status {
     if (this.status !== undefined) return this.status.currentStatus;
-    else return emptyStatus();
+    else return emptyStatus(this.type);
   }
+
   set currentStatus(value: Status) {
     if (this.status !== undefined) {
       this.status.currentStatus = value;
@@ -78,8 +83,9 @@ export class BaseDeviceClass implements BaseDevice {
 
   get lastStatus(): Status {
     if (this.status !== undefined) return this.status.lastStatus;
-    else return emptyStatus();
+    else return emptyStatus(this.type);
   }
+
   set lastStatus(value: Status) {
     if (this.status !== undefined) {
       this.status.lastStatus = value;
@@ -100,12 +106,46 @@ export class OutputDeviceClass extends BaseDeviceClass implements OutputDevice {
     name: string,
     type: DeviceType,
     status: DeviceStatus | undefined,
-    config: DeviceConfiguration,
+    config: BaseConfiguration,
     settings: OutputSettings,
-    mqttClient: mqtt.MqttClient
+    mqttClient: import("mqtt").MqttClient
   ) {
     super(id, name, type, status, config, mqttClient);
     this.settings = settings;
+  }
+}
+
+export class RgbLightDeviceClass extends BaseDeviceClass implements RgbLightDevice {
+  config: RgbLightConfiguration;
+  status: RgbLightDeviceStatus;
+
+  constructor(
+    id: number,
+    name: string,
+    type: DeviceType,
+    status: RgbLightDeviceStatus | undefined,
+    config: RgbLightConfiguration,
+    mqttClient: import("mqtt").MqttClient
+  ) {
+    super(id, name, type, status, config, mqttClient);
+  }
+
+  setColor(redValue: number, greenValue: number, blueValue: number): void {
+    const futureStatus = this.futureStatus as RgbLightStatus;
+    futureStatus.redValue = redValue;
+    futureStatus.greenValue = greenValue;
+    futureStatus.blueValue = blueValue;
+
+    const command = buildCommand(CommandType.Color, this.id, [stringJson(this.futureStatus), stringJson(this.lastStatus)]);
+    this.mqttClient.publish(`module/${this.config.moduleToken}/execute-command`, stringJson(command));
+  }
+
+  executeCommand(command: Command): void {
+    if (this.executeCommonCommands(command)) return;
+
+    if (command.id === CommandType.ColorChanged) {
+      (this.currentStatus as RgbLightStatus) = parseJson(command.payload[0]);
+    }
   }
 }
 
@@ -117,7 +157,7 @@ export interface Device {
 }
 
 export interface BaseDevice extends Device {
-  config: DeviceConfiguration;
+  config: BaseConfiguration;
 }
 
 // export interface InputDevice extends BaseDevice {}
@@ -125,25 +165,54 @@ export interface BaseDevice extends Device {
 export interface OutputDevice extends BaseDevice {
   settings: OutputSettings;
 }
-export interface DeviceConfiguration {
-  pinConfig: PinConfiguration;
-  moduleToken: string;
-  validCommands: Array<number>;
+
+export interface RgbLightDevice extends BaseDevice {
+  config: RgbLightConfiguration;
+  status: RgbLightDeviceStatus;
 }
 
-export interface PinConfiguration {
+export interface BaseConfiguration {
+  pinConfig: BasePin;
+  moduleToken: string;
+  validCommands: Array<number>;
+  isAnalogPower: boolean;
+}
+
+export interface RgbLightConfiguration extends BaseConfiguration {
+  pinConfig: RgbLightPin;
+}
+
+export interface BasePin {
   pin: number;
   pinCheck?: number;
+}
+
+export interface RgbLightPin extends BasePin {
+  redPin: number;
+  greenPin: number;
+  bluePin: number;
 }
 
 export interface Status {
   power: number;
 }
 
+export interface RgbLightStatus extends Status {
+  redValue: number;
+  greenValue: number;
+  blueValue: number;
+}
+
 export interface DeviceStatus {
   futureStatus: Status;
   currentStatus: Status;
   lastStatus: Status;
+}
+
+export interface RgbLightDeviceStatus {
+  futureStatus: RgbLightStatus;
+  currentStatus: RgbLightStatus;
+  lastStatus: RgbLightStatus;
 }
 
 export interface OutputSettings {
@@ -219,4 +288,6 @@ export enum StatusType {
 export enum CommandType {
   Power = 0,
   PowerChanged = 1,
+  Color = 2,
+  ColorChanged = 3,
 }

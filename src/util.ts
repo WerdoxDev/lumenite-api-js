@@ -1,4 +1,4 @@
-import { Time, DeviceType, OutputSettings, Status, StatusType } from "./classes";
+import { Time, DeviceType, OutputSettings, Status, StatusType, DeviceStatus, CommandType, Command } from "./classes";
 const generatedIds: Array<string> = [];
 
 export function getRandomId(): string {
@@ -59,6 +59,15 @@ export function getTimeFromMs(ms: number): Time {
   return time;
 }
 
+export function emptyDeviceStatus(type?: DeviceType): DeviceStatus {
+  const value: DeviceStatus = {
+    futureStatus: emptyStatus(type),
+    currentStatus: emptyStatus(type),
+    lastStatus: emptyStatus(type),
+  };
+  return value;
+}
+
 export function emptyStatus(type?: DeviceType): Status {
   let value: Status = {
     power: StatusType.Offline,
@@ -68,6 +77,11 @@ export function emptyStatus(type?: DeviceType): Status {
   }
   return value;
 }
+
+export function buildCommand(id: CommandType, deviceId: number, payload: Array<string>): Command {
+  return { id, deviceId, payload };
+}
+
 export function checkTopic(topic: string, match: string, ...ignores: Array<number>): boolean {
   const splitTopic = topic.split("/");
   for (let i = 0; i < ignores.length; i++) {
