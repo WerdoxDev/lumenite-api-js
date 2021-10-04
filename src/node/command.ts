@@ -2,7 +2,7 @@ import chalk from "chalk";
 import readline, { Key } from "readline";
 import { cursor, erase, stripAnsi } from "./ansi";
 import MuteStream from "mute-stream";
-import { Client, GatewayOptions, Protocol, GatewayStatus } from "../core";
+import { Client, GatewayOptions, Protocol, GatewayStatus, RgbLightDeviceClass } from "../core";
 import { addToString, removeFromString } from "../util";
 
 let currentPrompt: Prompt | undefined;
@@ -299,8 +299,12 @@ input.on("keypress", (str: string, key: Key) => {
       const command = commandLine.split(" ");
       if (command[0] === "power") {
         if (command.length < 2) return;
-        if (command.length === 3) client.devices[Number(command[1])].setPower(Number(command[2]));
+        if (command.length === 3) client.deviceById(Number(command[1])).setPower(Number(command[2]));
         else client.devices[Number(command[1])].togglePower();
+      } else if (command[0] === "color") {
+        if (command.length < 3) return;
+        if (command.length === 5)
+          client.deviceById<RgbLightDeviceClass>(Number(command[1])).setColor(Number(command[2]), Number(command[3]), Number(command[4]));
       }
       commandLine = "";
       cursorX = 0;

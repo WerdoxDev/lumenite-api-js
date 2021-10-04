@@ -8,6 +8,8 @@ import {
   OutputDevice,
   OutputDeviceClass,
   OutputSettings,
+  RgbLightDevice,
+  RgbLightDeviceClass,
 } from "../classes";
 import { Client, ClientConfiguration, GatewayOptions } from "./index";
 import { checkTopic, emptyStatus, getRandomId, parseJson } from "../util";
@@ -102,8 +104,17 @@ export class Gateway {
   private clientInitialize(payload: ClientInitializePayload) {
     const devices: Array<BaseDeviceClass> = [];
     payload.devices.forEach((x) => {
-      if (x.type === DeviceType.RgbLight) throw new Error("RgbLight is not implemented yet!");
-      else {
+      if (x.type === DeviceType.RgbLight) {
+        const device = new RgbLightDeviceClass(
+          x.id,
+          x.name,
+          x.type,
+          (x as RgbLightDevice).status,
+          (x as RgbLightDevice).config,
+          this.mqttClient
+        );
+        devices.push(device);
+      } else {
         const device = new OutputDeviceClass(x.id, x.name, x.type, x.status, x.config, (x as OutputDevice).settings, this.mqttClient);
         devices.push(device);
       }

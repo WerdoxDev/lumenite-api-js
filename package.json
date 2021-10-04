@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "test": "jest --config jest.config.js",
-    "test-normal": "TS_NODE_PROJECT='tsconfig.cjs.json' npx ts-node src/node/command.ts",
+    "test-normal": "TS_NODE_PROJECT='tsconfig.cjs.json' npx ts-node src/__tests__/test.ts",
     "clean": "rimraf dist",
     "build": "npm run clean && tsc -p tsconfig.mjs.json && tsc -p tsconfig.cjs.json && ./fixup",
     "lint": "eslint src",

@@ -1,4 +1,6 @@
-import chalk from "chalk";
-import "../node/command";
+import { setMqttImpl } from "../core/impl";
+import { showPrompt } from "../node/command";
+import * as mqtt from "mqtt";
+setMqttImpl(mqtt);
 
-console.log(chalk.red.bgBlue.bold("HELLLO"));
+showPrompt();
