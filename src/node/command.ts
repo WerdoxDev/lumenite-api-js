@@ -5,10 +5,6 @@ import MuteStream from "mute-stream";
 import { Client, GatewayOptions, Protocol, GatewayStatus } from "../core";
 import { addToString, removeFromString } from "../util";
 
-import * as mqtt from "mqtt"; // TEMP
-import { setMqttImpl } from "../core/impl"; // TEMP
-setMqttImpl(mqtt); // TEMP
-
 let currentPrompt: Prompt | undefined;
 let content = "";
 let renderHeight = 0;
@@ -332,22 +328,3 @@ export async function showPrompt(): Promise<void> {
   }
   output.write(chalk.green.bold("\nConnected!\n\n" + cursor.show()));
 }
-
-(async () => {
-  // TEMP
-  const answers = await prompt(questions);
-  output.write(chalk.yellow.bold("\nInitializing..."));
-  const url = answers.find((x) => x.name === "url")?.result || "";
-  const protocol = answers.find((x) => x.name === "protocol")?.result || "mqtt";
-  const username = answers.find((x) => x.name === "username")?.result;
-  const password = answers.find((x) => x.name === "password")?.result;
-  const options: GatewayOptions = { url, protocol: protocol as Protocol, username, password };
-  client = new Client(options);
-  output.write(chalk.cyan.bold("\nConnecting..."));
-  const result = await client.login();
-  if (result !== GatewayStatus.Success) {
-    output.write(chalk.red.bold("\nFailed to connect"));
-    return;
-  }
-  output.write(chalk.green.bold("\nConnected!\n\n" + cursor.show()));
-})();

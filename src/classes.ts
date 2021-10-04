@@ -39,7 +39,7 @@ export class BaseDeviceClass implements BaseDevice {
   }
 
   executeCommonCommands(command: Command): boolean {
-    let isExecuted;
+    let isExecuted = false;
     if (!this.config.validCommands.find((x) => x === command.id)) throw new Error("Command is not valid for device");
 
     if (command.id === CommandType.PowerChanged) {
@@ -117,7 +117,7 @@ export class OutputDeviceClass extends BaseDeviceClass implements OutputDevice {
 
 export class RgbLightDeviceClass extends BaseDeviceClass implements RgbLightDevice {
   config: RgbLightConfiguration;
-  status: RgbLightDeviceStatus;
+  status: RgbLightDeviceStatus | undefined;
 
   constructor(
     id: number,
@@ -128,6 +128,8 @@ export class RgbLightDeviceClass extends BaseDeviceClass implements RgbLightDevi
     mqttClient: import("mqtt").MqttClient
   ) {
     super(id, name, type, status, config, mqttClient);
+    this.config = config;
+    this.status = status;
   }
 
   setColor(redValue: number, greenValue: number, blueValue: number): void {
@@ -168,7 +170,7 @@ export interface OutputDevice extends BaseDevice {
 
 export interface RgbLightDevice extends BaseDevice {
   config: RgbLightConfiguration;
-  status: RgbLightDeviceStatus;
+  status?: RgbLightDeviceStatus;
 }
 
 export interface BaseConfiguration {
