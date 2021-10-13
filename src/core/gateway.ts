@@ -10,6 +10,8 @@ import {
   OutputSettings,
   RgbLightDevice,
   RgbLightDeviceClass,
+  TempSensorDevice,
+  TempSensorDeviceClass,
 } from "../classes";
 import { Client, ClientConfiguration, GatewayOptions } from "./index";
 import { checkTopic, emptyStatus, getRandomId, parseJson } from "../util";
@@ -111,6 +113,16 @@ export class Gateway {
           x.type,
           (x as RgbLightDevice).status,
           (x as RgbLightDevice).config,
+          this.mqttClient
+        );
+        devices.push(device);
+      } else if (x.type === DeviceType.TempSensor) {
+        const device = new TempSensorDeviceClass(
+          x.id,
+          x.name,
+          x.type,
+          (x as TempSensorDevice).status,
+          (x as TempSensorDevice).config,
           this.mqttClient
         );
         devices.push(device);

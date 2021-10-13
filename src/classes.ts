@@ -168,6 +168,14 @@ export class TempSensorDeviceClass extends BaseDeviceClass implements TempSensor
     this.config = config;
     this.status = status;
   }
+
+  executeCommand(command: Command): void {
+    if (this.executeCommonCommands(command)) return;
+
+    if (command.id === CommandType.TemperatureChanged) {
+      (this.currentStatus as TempSensorStatus) = parseJson(command.payload[0]);
+    }
+  }
 }
 
 export interface Device {
