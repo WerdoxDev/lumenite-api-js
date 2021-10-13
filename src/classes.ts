@@ -5,7 +5,7 @@ export class BaseDeviceClass implements BaseDevice {
   config: BaseConfiguration;
   name: string;
   type: DeviceType;
-  status?: DeviceStatus | undefined;
+  status?: DeviceStatus;
 
   constructor(
     id: number,
@@ -117,7 +117,7 @@ export class OutputDeviceClass extends BaseDeviceClass implements OutputDevice {
 
 export class RgbLightDeviceClass extends BaseDeviceClass implements RgbLightDevice {
   config: RgbLightConfiguration;
-  status: RgbLightDeviceStatus | undefined;
+  status?: RgbLightDeviceStatus;
 
   constructor(
     id: number,
@@ -134,6 +134,7 @@ export class RgbLightDeviceClass extends BaseDeviceClass implements RgbLightDevi
 
   setColor(redValue: number, greenValue: number, blueValue: number): void {
     const futureStatus = this.futureStatus as RgbLightStatus;
+    futureStatus.power = this.currentStatus.power;
     futureStatus.redValue = redValue;
     futureStatus.greenValue = greenValue;
     futureStatus.blueValue = blueValue;
@@ -148,6 +149,24 @@ export class RgbLightDeviceClass extends BaseDeviceClass implements RgbLightDevi
     if (command.id === CommandType.ColorChanged) {
       (this.currentStatus as RgbLightStatus) = parseJson(command.payload[0]);
     }
+  }
+}
+
+export class TempSensorDeviceClass extends BaseDeviceClass implements TempSensorDevice {
+  config: TempSensorConfiguration;
+  status?: TempSensorDeviceStatus;
+
+  constructor(
+    id: number,
+    name: string,
+    type: DeviceType,
+    status: TempSensorDeviceStatus | undefined,
+    config: TempSensorConfiguration,
+    mqttClient: import("mqtt").MqttClient
+  ) {
+    super(id, name, type, status, config, mqttClient);
+    this.config = config;
+    this.status = status;
   }
 }
 
@@ -173,6 +192,11 @@ export interface RgbLightDevice extends BaseDevice {
   status?: RgbLightDeviceStatus;
 }
 
+export interface TempSensorDevice extends BaseDevice {
+  config: TempSensorConfiguration;
+  status?: TempSensorDeviceStatus;
+}
+
 export interface BaseConfiguration {
   pinConfig: BasePin;
   moduleToken: string;
@@ -182,6 +206,10 @@ export interface BaseConfiguration {
 
 export interface RgbLightConfiguration extends BaseConfiguration {
   pinConfig: RgbLightPin;
+}
+
+export interface TempSensorConfiguration extends BaseConfiguration {
+  pinConfig: TempSensorPin;
 }
 
 export interface BasePin {
@@ -195,6 +223,10 @@ export interface RgbLightPin extends BasePin {
   bluePin: number;
 }
 
+export interface TempSensorPin extends BasePin {
+  dataPin: number;
+}
+
 export interface Status {
   power: number;
 }
@@ -203,6 +235,11 @@ export interface RgbLightStatus extends Status {
   redValue: number;
   greenValue: number;
   blueValue: number;
+}
+
+export interface TempSensorStatus extends Status {
+  temperature: number;
+  humidity: number;
 }
 
 export interface DeviceStatus {
@@ -215,6 +252,12 @@ export interface RgbLightDeviceStatus {
   futureStatus: RgbLightStatus;
   currentStatus: RgbLightStatus;
   lastStatus: RgbLightStatus;
+}
+
+export interface TempSensorDeviceStatus {
+  futureStatus: TempSensorStatus;
+  currentStatus: TempSensorStatus;
+  lastStatus: TempSensorStatus;
 }
 
 export interface OutputSettings {
@@ -277,7 +320,7 @@ export enum DeviceType {
   OutputDevice = "OUTPUT_DEVICE",
   InputDevice = "INPUT_DEVICE",
   RgbLight = "RGB_LIGHT",
-  TemperatureSensor = "TEMPERATURE_SENSOR",
+  TempSensor = "TEMPERATURE_SENSOR",
 }
 
 export enum StatusType {
@@ -292,4 +335,5 @@ export enum CommandType {
   PowerChanged = 1,
   Color = 2,
   ColorChanged = 3,
+  TemperatureChanged = 4,
 }

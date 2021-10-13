@@ -3,7 +3,7 @@ import readline, { Key } from "readline";
 import { cursor, erase, stripAnsi } from "./ansi";
 import MuteStream from "mute-stream";
 import { Client, GatewayOptions, Protocol, GatewayStatus, RgbLightDeviceClass } from "../core";
-import { addToString, removeFromString } from "../util";
+import { addToString, buildCommand, removeFromString, stringJson } from "../util";
 
 let currentPrompt: Prompt | undefined;
 let content = "";
@@ -305,6 +305,11 @@ input.on("keypress", (str: string, key: Key) => {
         if (command.length < 3) return;
         if (command.length === 5)
           client.deviceById<RgbLightDeviceClass>(Number(command[1])).setColor(Number(command[2]), Number(command[3]), Number(command[4]));
+      } else if (command[0] === "lcd_text") {
+        // lcd_text 0 0 hello
+        if (command.length < 4) return;
+        const cmd = buildCommand(11, 10, [command[1], command[2], command.slice(3, command.length).join(" ")]);
+        client.gateway.mqttClient.publish(`module/${client.deviceById(0).config.moduleToken}/execute-command`, stringJson(cmd));
       }
       commandLine = "";
       cursorX = 0;

@@ -8,7 +8,7 @@ export class Client {
   public connectedClients: number;
   public totalModules: number;
   private _config: ClientConfiguration;
-  private gateway: Gateway;
+  public gateway: Gateway;
 
   constructor(options: GatewayOptions) {
     this.options = options;

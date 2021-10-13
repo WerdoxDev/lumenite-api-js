@@ -20,8 +20,12 @@ export function getRandomId(): string {
   return id;
 }
 
-export function getRandomInt(max: number): number {
-  return Math.floor(Math.random() * max);
+export function getRandomInt(max: number, min = 0): number {
+  return clamp(Math.floor(Math.random() * max), min, max);
+}
+
+export function clamp(number: number, min: number, max: number): number {
+  return Math.min(Math.max(number, min), max);
 }
 
 export function emptyTime(): Time {

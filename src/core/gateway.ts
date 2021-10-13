@@ -18,7 +18,7 @@ export class Gateway {
   private readonly timeoutTime = 5000;
   public readonly id = getRandomId();
   private readonly client: Client;
-  private mqttClient: import("mqtt").MqttClient;
+  public mqttClient: import("mqtt").MqttClient;
 
   constructor(client: Client) {
     this.client = client;
