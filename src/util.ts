@@ -1,4 +1,16 @@
-import { Time, DeviceType, OutputSettings, Status, StatusType, DeviceStatus, CommandType, Command } from "./classes";
+import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from "constants";
+import {
+  Time,
+  DeviceType,
+  OutputSettings,
+  Status,
+  StatusType,
+  DeviceStatus,
+  CommandType,
+  Command,
+  RgbLightStatus,
+  TempSensorStatus,
+} from "./classes";
 const generatedIds: Array<string> = [];
 
 export function getRandomId(): string {
@@ -77,7 +89,9 @@ export function emptyStatus(type?: DeviceType): Status {
     power: StatusType.Offline,
   };
   if (type === DeviceType.RgbLight) {
-    value = Object.assign(value, { redValue: 0, greenValue: 0, blueValue: 0 });
+    value = Object.assign(value, { redValue: 0, greenValue: 0, blueValue: 0 } as RgbLightStatus);
+  } else if (type === DeviceType.TempSensor) {
+    value = Object.assign(value, { temperature: 0, humidity: 0 } as TempSensorStatus);
   }
   return value;
 }
