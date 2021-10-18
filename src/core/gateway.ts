@@ -14,7 +14,7 @@ import {
   TempSensorDeviceClass,
 } from "../classes";
 import { Client, ClientConfiguration, GatewayOptions } from "./index";
-import { checkTopic, emptyStatus, getRandomId, parseJson } from "../util";
+import { checkTopic, deviceClassFromInterface, emptyStatus, getRandomId, parseJson } from "../util";
 
 export class Gateway {
   private readonly timeoutTime = 5000;
@@ -97,6 +97,12 @@ export class Gateway {
           if (device) {
             device.executeCommand(command);
           }
+        } else if (checkTopic(topic, "server/module/update-device", 2)) {
+          const device: BaseDevice = parseJson(message.toString());
+          const index = this.client.devices.findIndex((x) => x.id === device.id);
+          if (device && index !== -1) {
+            this.client.devices.splice(index, 1, deviceClassFromInterface(device, this.mqttClient));
+          }
         }
       });
     }).finally(() => clearTimeout(timeout));
@@ -106,38 +112,17 @@ export class Gateway {
   private clientInitialize(payload: ClientInitializePayload) {
     const devices: Array<BaseDeviceClass> = [];
     payload.devices.forEach((x) => {
-      if (x.type === DeviceType.RgbLight) {
-        const device = new RgbLightDeviceClass(
-          x.id,
-          x.name,
-          x.type,
-          (x as RgbLightDevice).status,
-          (x as RgbLightDevice).config,
-          this.mqttClient
-        );
-        devices.push(device);
-      } else if (x.type === DeviceType.TempSensor) {
-        const device = new TempSensorDeviceClass(
-          x.id,
-          x.name,
-          x.type,
-          (x as TempSensorDevice).status,
-          (x as TempSensorDevice).config,
-          this.mqttClient
-        );
-        devices.push(device);
-      } else {
-        const device = new OutputDeviceClass(x.id, x.name, x.type, x.status, x.config, (x as OutputDevice).settings, this.mqttClient);
-        devices.push(device);
-      }
+      devices.push(deviceClassFromInterface(x, this.mqttClient));
     });
     this.client.config = payload.config;
     this.client.config.registeredModuleTokens.forEach((x) => {
       this.mqttClient.subscribe(`module/${x}/execute-client-command`);
       this.mqttClient.subscribe(`module/${x}/device-settings-changed`);
       this.mqttClient.subscribe(`module/${x}/client/${this.id}/set-devices`);
+      this.mqttClient.subscribe(`server/module/${x}/update-device`);
     });
     this.mqttClient.publish(`client/${this.id}/initialize-finished`, "");
+    console.log(devices[0].name);
     this.client.devices = devices;
   }
 

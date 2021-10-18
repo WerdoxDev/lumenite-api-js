@@ -9,6 +9,14 @@ import {
   Command,
   RgbLightStatus,
   TempSensorStatus,
+  BaseDevice,
+  RgbLightDeviceClass,
+  OutputDevice,
+  OutputDeviceClass,
+  RgbLightDevice,
+  TempSensorDevice,
+  TempSensorDeviceClass,
+  BaseDeviceClass,
 } from "./classes";
 const generatedIds: Array<string> = [];
 
@@ -93,6 +101,41 @@ export function emptyStatus(type?: DeviceType): Status {
     value = Object.assign(value, { temperature: 0, humidity: 0 } as TempSensorStatus);
   }
   return value;
+}
+
+export function deviceClassFromInterface<T extends BaseDeviceClass>(device: BaseDevice, mqttClient: import("mqtt").MqttClient): T {
+  if (device.type === DeviceType.RgbLight) {
+    const actualDevice = device as RgbLightDevice;
+    return (device = new RgbLightDeviceClass(
+      actualDevice.id,
+      actualDevice.name,
+      actualDevice.type,
+      actualDevice.status,
+      actualDevice.config,
+      mqttClient
+    )) as unknown as T;
+  } else if (device.type === DeviceType.TempSensor) {
+    const actualDevice = device as TempSensorDevice;
+    return new TempSensorDeviceClass(
+      actualDevice.id,
+      actualDevice.name,
+      actualDevice.type,
+      actualDevice.status,
+      actualDevice.config,
+      mqttClient
+    ) as unknown as T;
+  } else {
+    const actualDevice = device as OutputDevice;
+    return new OutputDeviceClass(
+      actualDevice.id,
+      actualDevice.name,
+      actualDevice.type,
+      actualDevice.status,
+      actualDevice.config,
+      actualDevice.settings,
+      mqttClient
+    ) as unknown as T;
+  }
 }
 
 export function buildCommand(id: CommandType, deviceId: number, payload: Array<string>): Command {
