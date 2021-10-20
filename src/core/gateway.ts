@@ -87,12 +87,8 @@ export class Gateway {
           const device = this.client.devices.find((x) => x.id === command.deviceId);
           if (device) device.executeCommand(command);
         } else if (checkTopic(topic, "server/module/update-device", 2)) {
-          const device: BaseDevice = parseJson(message.toString());
-          const index = this.client.devices.findIndex((x) => x.id === device.id);
-          if (device && index !== -1) {
-            this.client.devices.splice(index, 1, deviceClassFromInterface(device, this.mqttClient));
-            this.mqttClient.publish(`module/${device.config.moduleToken}/update-device`, stringJson([this.id, device]));
-          }
+          const payload: UpdateDevicePayload = parseJson(message.toString());
+          this.clientUpdateDevice(payload);
         }
       });
     }).finally(() => clearTimeout(timeout));
@@ -120,6 +116,27 @@ export class Gateway {
   private clientSetConnected(payload: ClientSetConnectedPayload) {
     this.client.connectedClients = payload[0];
     this.client.connectedModules = payload[1];
+  }
+
+  private clientUpdateDevice(payload: UpdateDevicePayload) {
+    if (payload[0] === "update" || payload[0] === "add") {
+      const device = payload[1] as BaseDevice;
+      const index = this.client.devices.findIndex((x) => x.id === device.id);
+      if (payload[1] && index !== -1) {
+        this.client.devices.splice(index, 1, deviceClassFromInterface(device, this.mqttClient));
+        this.mqttClient.publish(`module/${device.config.moduleToken}/update-device`, stringJson(["update", device, this.id]));
+      } else if (device && index === -1) {
+        this.client.devices.push(deviceClassFromInterface(device, this.mqttClient));
+        this.mqttClient.publish(`module/${device.config.moduleToken}/update-device`, stringJson(["add", device, this.id]));
+      }
+    } else if (payload[0] === "delete") {
+      const id = payload[1] as { id: number; token: string };
+      const index = this.client.devices.findIndex((x) => x.id === id.id);
+      if (index !== -1) {
+        this.client.devices.splice(index, 1);
+        this.mqttClient.publish(`module/${id.token}/update-device`, stringJson(["delete", id.id, this.id]));
+      }
+    }
   }
 
   private moduleClientSetDevices(payload: ClientSetDevicesPayload) {
@@ -180,6 +197,8 @@ export interface SetDevicePayload {
   id: number;
   status: DeviceStatus;
 }
+
+export type UpdateDevicePayload = [string, unknown];
 
 export enum GatewayStatus {
   Success = "SUCCESS",
