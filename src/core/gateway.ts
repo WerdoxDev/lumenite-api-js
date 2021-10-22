@@ -70,32 +70,33 @@ export class Gateway {
           // Add later
         } else if (checkTopic(topic, "client/initialize", 1)) {
           const payload: ClientInitializePayload = parseJson(message.toString());
-          this.clientInitialize(payload);
+          this.initialize(payload);
         } else if (checkTopic(topic, "client/set-connected", 1)) {
           const payload: ClientSetConnectedPayload = parseJson(message.toString());
-          this.clientSetConnected(payload);
+          this.setConnected(payload);
         } else if (checkTopic(topic, "module/client/set-devices", 1, 3)) {
           const payload: ClientSetDevicesPayload = parseJson(message.toString());
-          this.moduleClientSetDevices(payload);
+          this.setDevices(payload);
           resolve(GatewayStatus.Success);
-        } else if (checkTopic(topic, "module/client/update-device", 1, 3)) {
-          const payload: SetDevicePayload = parseJson(message.toString());
-          this.moduleClientUpdateDevice(payload);
+        } else if (checkTopic(topic, "module/client/update-device", 1)) {
+          const payload: UpdateDevicePayload = parseJson(message.toString());
+          this.updateDevice(payload);
           resolve(GatewayStatus.Success);
         } else if (checkTopic(topic, "module/execute-client-command", 1)) {
           const command: Command = parseJson(message.toString());
           const device = this.client.devices.find((x) => x.id === command.deviceId);
           if (device) device.executeCommand(command);
-        } else if (checkTopic(topic, "server/module/update-device", 2)) {
-          const payload: UpdateDevicePayload = parseJson(message.toString());
-          this.clientUpdateDevice(payload);
         }
+        // } else if (checkTopic(topic, "server/module/update-device", 2)) {
+        //   const payload: UpdateDevicePayload = parseJson(message.toString());
+        //   this.updateDevice(payload);
+        // }
       });
     }).finally(() => clearTimeout(timeout));
     return result;
   }
 
-  private clientInitialize(payload: ClientInitializePayload) {
+  private initialize(payload: ClientInitializePayload) {
     const devices: Array<BaseDeviceClass> = [];
     payload.devices.forEach((x) => {
       devices.push(deviceClassFromInterface(x, this.mqttClient));
@@ -106,41 +107,35 @@ export class Gateway {
       this.mqttClient.subscribe(`module/${x}/device-settings-changed`);
       this.mqttClient.subscribe(`module/${x}/client/${this.id}/set-devices`);
       this.mqttClient.subscribe(`module/${x}/client/${this.id}/update-device`);
-      this.mqttClient.subscribe(`server/module/${x}/update-device`);
+      this.mqttClient.subscribe(`module/${x}/client/update-device`);
     });
     this.mqttClient.publish(`client/${this.id}/initialize-finished`, "");
     console.log(devices[0].name);
     this.client.devices = devices;
   }
 
-  private clientSetConnected(payload: ClientSetConnectedPayload) {
+  private setConnected(payload: ClientSetConnectedPayload) {
     this.client.connectedClients = payload[0];
     this.client.connectedModules = payload[1];
   }
 
-  private clientUpdateDevice(payload: UpdateDevicePayload) {
-    if (payload[0] === "update" || payload[0] === "add") {
-      const device = payload[1] as BaseDevice;
+  private updateDevice(payload: UpdateDevicePayload) {
+    if (payload.operation === "update" || payload.operation === "add") {
+      const device = payload.deviceOrId as BaseDevice;
       const index = this.client.devices.findIndex((x) => x.id === device.id);
-      if (payload[1] && index !== -1) {
-        this.client.devices.splice(index, 1, deviceClassFromInterface(device, this.mqttClient));
-        this.mqttClient.publish(`module/${device.config.moduleToken}/update-device`, stringJson(["update", device, this.id]));
-      } else if (device && index === -1) {
-        this.client.devices.push(deviceClassFromInterface(device, this.mqttClient));
-        this.mqttClient.publish(`module/${device.config.moduleToken}/update-device`, stringJson(["add", device, this.id]));
-      }
-    } else if (payload[0] === "delete") {
-      const id = payload[1] as { id: number; token: string };
-      const index = this.client.devices.findIndex((x) => x.id === id.id);
-      if (index !== -1) {
-        this.client.devices.splice(index, 1);
-        this.mqttClient.publish(`module/${id.token}/update-device`, stringJson(["delete", id.id, this.id]));
-      }
+      if (device && index !== -1) this.client.devices.splice(index, 1);
+
+      this.client.devices.push(deviceClassFromInterface(device, this.mqttClient));
+    } else if (payload.operation === "delete") {
+      const id = payload.deviceOrId as number;
+      const index = this.client.devices.findIndex((x) => x.id === id);
+      if (index !== -1) this.client.devices.splice(index, 1);
     }
   }
 
-  private moduleClientSetDevices(payload: ClientSetDevicesPayload) {
+  private setDevices(payload: ClientSetDevicesPayload) {
     const devices = [...this.client.devices];
+    console.log(payload);
     devices.forEach((x) => {
       const index = payload.findIndex((y) => y.id === x.id);
       x.status = {
@@ -152,16 +147,16 @@ export class Gateway {
     this.client.devices = devices;
   }
 
-  private moduleClientUpdateDevice(payload: SetDevicePayload) {
-    const index = this.client.devices.findIndex((x) => x.id === payload.id);
-    if (index !== -1) {
-      this.client.devices[index].status = {
-        futureStatus: emptyStatus(),
-        currentStatus: payload.status.currentStatus || emptyStatus(),
-        lastStatus: emptyStatus(),
-      };
-    }
-  }
+  // private updateDevice(payload: UpdateDevicePayload) {
+  //   const index = this.client.devices.findIndex((x) => x.id === payload.id);
+  //   if (index !== -1) {
+  //     this.client.devices[index].status = {
+  //       futureStatus: emptyStatus(),
+  //       currentStatus: payload.status.currentStatus || emptyStatus(),
+  //       lastStatus: emptyStatus(),
+  //     };
+  //   }
+  // }
 }
 
 export interface ChangeDeviceStatusPayload {
@@ -198,7 +193,10 @@ export interface SetDevicePayload {
   status: DeviceStatus;
 }
 
-export type UpdateDevicePayload = [string, unknown];
+export interface UpdateDevicePayload {
+  operation: string;
+  deviceOrId: BaseDevice | number;
+}
 
 export enum GatewayStatus {
   Success = "SUCCESS",
