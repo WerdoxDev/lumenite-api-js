@@ -67,7 +67,7 @@ export class BaseDeviceClass implements BaseDevice {
   set futureStatus(value: Status) {
     if (this.status !== undefined) {
       this.status.futureStatus = value;
-    } else throw new Error("FutureStatus was null!");
+    }
   }
 
   get currentStatus(): Status {
@@ -78,7 +78,7 @@ export class BaseDeviceClass implements BaseDevice {
   set currentStatus(value: Status) {
     if (this.status !== undefined) {
       this.status.currentStatus = value;
-    } else throw new Error("CurrentStatus was null!");
+    }
   }
 
   get lastStatus(): Status {
@@ -89,7 +89,7 @@ export class BaseDeviceClass implements BaseDevice {
   set lastStatus(value: Status) {
     if (this.status !== undefined) {
       this.status.lastStatus = value;
-    } else throw new Error("LastStatus was null!");
+    }
   }
 
   // Only works with devices that have ON and OFF as status
