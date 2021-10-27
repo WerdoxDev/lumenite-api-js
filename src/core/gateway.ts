@@ -147,16 +147,9 @@ export class Gateway {
     this.client.devices = devices;
   }
 
-  // private updateDevice(payload: UpdateDevicePayload) {
-  //   const index = this.client.devices.findIndex((x) => x.id === payload.id);
-  //   if (index !== -1) {
-  //     this.client.devices[index].status = {
-  //       futureStatus: emptyStatus(),
-  //       currentStatus: payload.status.currentStatus || emptyStatus(),
-  //       lastStatus: emptyStatus(),
-  //     };
-  //   }
-  // }
+  addDevice(device: BaseDevice): void {
+    this.mqttClient.publish(`client/${this.id}/update-device`, stringJson(device));
+  }
 }
 
 export interface ChangeDeviceStatusPayload {

@@ -1,4 +1,4 @@
-import { BaseDeviceClass } from "../classes";
+import { BaseDevice, BaseDeviceClass } from "../classes";
 import { Gateway, GatewayStatus } from "./gateway";
 
 export class Client {
@@ -43,6 +43,10 @@ export class Client {
   deviceById<T extends BaseDeviceClass>(id: number): T {
     const device = this.devices.find((x) => x.id === id) || this.devices[0];
     return device as T;
+  }
+
+  addDevice(device: BaseDevice): void {
+    this.gateway.addDevice(device);
   }
 }
 
