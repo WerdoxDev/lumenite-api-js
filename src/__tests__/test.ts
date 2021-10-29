@@ -4,17 +4,18 @@ import { getRandomInt } from "../util";
 
 (async () => {
   showPrompt();
-  //   const options: GatewayOptions = {
-  //     url: "128.65.178.12",
-  //     port: 1883,
-  //     protocol: "mqtt",
-  //   };
+    const options: GatewayOptions = {
+      url: "128.65.178.12",
+      port: 1883,
+      protocol: "mqtt",
+    };
 
-  //   const client: Client = new Client(options);
-  //   const result = await client.login();
-  //   if (result !== GatewayStatus.Success) return;
+    const client: Client = new Client(options);
+    const result = await client.login();
+    if (result !== GatewayStatus.Success) return;
 
-  //   setInterval(() => {
-  //     client.deviceById<RgbLightDeviceClass>(1).setColor(getRandomInt(2) * 255, getRandomInt(2) * 255, getRandomInt(2) * 255);
-  //   }, 125);
+    setInterval(() => {
+      client.deviceById<RgbLightDeviceClass>(1).setColor(getRandomInt(2) * 255, getRandomInt(2) * 255, getRandomInt(2) * 255);
+    }, 125);
+    client.addDevice
 })();

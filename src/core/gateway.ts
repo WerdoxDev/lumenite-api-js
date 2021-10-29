@@ -148,7 +148,11 @@ export class Gateway {
   }
 
   addDevice(device: BaseDevice): void {
-    this.mqttClient.publish(`client/${this.id}/update-device`, stringJson(device));
+    this.mqttClient.publish(`client/${this.id}/update-device`, stringJson({ operation: "add", deviceOrId: device } as UpdateDevicePayload));
+  }
+
+  removeDevice(id: number): void {
+    this.mqttClient.publish(`client/${this.id}/update-device`, stringJson({ operation: "delete", deviceOrId: id } as UpdateDevicePayload));
   }
 }
 

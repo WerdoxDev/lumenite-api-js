@@ -48,6 +48,10 @@ export class Client {
   addDevice(device: BaseDevice): void {
     this.gateway.addDevice(device);
   }
+
+  removeDevice(id: number): void {
+    this.gateway.removeDevice(id);
+  }
 }
 
 export interface GatewayOptions {
