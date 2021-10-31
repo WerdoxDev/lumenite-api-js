@@ -1,5 +1,6 @@
 import { BaseDevice, BaseDeviceClass } from "../classes";
-import { Gateway, GatewayStatus } from "./gateway";
+import { stringJson } from "../util";
+import { Gateway, GatewayStatus, UpdateDevicePayload } from "./gateway";
 
 export class Client {
   private _devices: Array<BaseDeviceClass> = [];
@@ -46,11 +47,24 @@ export class Client {
   }
 
   addDevice(device: BaseDevice): void {
-    this.gateway.addDevice(device);
+    this.gateway.mqttClient.publish(
+      `client/${this.gateway.id}/update-device`,
+      stringJson({ operation: "add", deviceOrId: device } as UpdateDevicePayload)
+    );
+  }
+
+  updateDevice(device: BaseDevice): void {
+    this.gateway.mqttClient.publish(
+      `client/${this.gateway.id}/update-device`,
+      stringJson({ operation: "update", deviceOrId: device } as UpdateDevicePayload)
+    );
   }
 
   removeDevice(id: number): void {
-    this.gateway.removeDevice(id);
+    this.gateway.mqttClient.publish(
+      `client/${this.gateway.id}/update-device`,
+      stringJson({ operation: "delete", deviceOrId: id } as UpdateDevicePayload)
+    );
   }
 }
 
