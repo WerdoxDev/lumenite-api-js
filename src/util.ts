@@ -138,6 +138,39 @@ export function deviceClassFromInterface<T extends BaseDeviceClass>(device: Base
   }
 }
 
+export function interfaceFromDeviceClass<T extends BaseDevice>(device: BaseDeviceClass): T {
+  if (device.type === DeviceType.RgbLight) {
+    const actualDevice = device as RgbLightDeviceClass;
+    const interfaceDevice: RgbLightDevice = {
+      id: actualDevice.id,
+      name: actualDevice.name,
+      type: actualDevice.type,
+      config: actualDevice.config,
+    };
+    return interfaceDevice as unknown as T;
+  }
+  if (device.type === DeviceType.TempSensor) {
+    const actualDevice = device as TempSensorDeviceClass;
+    const interfaceDevice: TempSensorDevice = {
+      id: actualDevice.id,
+      name: actualDevice.name,
+      type: actualDevice.type,
+      config: actualDevice.config,
+    };
+    return interfaceDevice as unknown as T;
+  } else {
+    const actualDevice = device as OutputDeviceClass;
+    const interfaceDevice: OutputDevice = {
+      id: actualDevice.id,
+      name: actualDevice.name,
+      type: actualDevice.type,
+      config: actualDevice.config,
+      settings: actualDevice.settings,
+    };
+    return interfaceDevice as unknown as T;
+  }
+}
+
 export function buildCommand(id: CommandType, deviceId: number, payload: Array<string>): Command {
   return { id, deviceId, payload };
 }
