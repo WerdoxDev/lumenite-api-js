@@ -22,8 +22,8 @@ export class BaseDeviceClass implements BaseDevice {
     this.config = config;
   }
 
-  setPower(power: StatusType): void {
-    if (power === undefined) return;
+  setPower(power: number): void {
+    if (power === -99) return;
     if (!this.isInValidState) return;
     if (this.currentStatus.power === power) return;
     this.futureStatus.power = power;
@@ -98,7 +98,7 @@ export class BaseDeviceClass implements BaseDevice {
     if (this.config.isAnalogPower) {
       if (this.currentStatus.power === 255) return 0;
       else if (this.currentStatus.power === 0) return 255;
-      else return undefined;
+      else return -99;
     } else return status.power === StatusType.On ? StatusType.Off : StatusType.On;
   }
 }
