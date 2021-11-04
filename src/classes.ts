@@ -23,7 +23,9 @@ export class BaseDeviceClass implements BaseDevice {
   }
 
   setPower(power: StatusType): void {
+    if (power === undefined) return;
     if (!this.isInValidState) return;
+    if (this.currentStatus.power === power) return;
     this.futureStatus.power = power;
     const temp = this.currentStatus;
     Object.freeze(temp);
@@ -92,9 +94,12 @@ export class BaseDeviceClass implements BaseDevice {
     }
   }
 
-  // Only works with devices that have ON and OFF as status
-  oppositePower(status: Status): StatusType {
-    return status.power === StatusType.On ? StatusType.Off : StatusType.On;
+  oppositePower(status: Status): number {
+    if (this.config.isAnalogPower) {
+      if (this.currentStatus.power === 255) return 0;
+      else if (this.currentStatus.power === 0) return 255;
+      else return undefined;
+    } else return status.power === StatusType.On ? StatusType.Off : StatusType.On;
   }
 }
 
