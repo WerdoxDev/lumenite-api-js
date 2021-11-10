@@ -147,7 +147,7 @@ export class Gateway {
 }
 
 export interface ClientInitializePayload {
-  result: ClientLoginPayload;
+  result: LoginResult;
   devices: Array<BaseDevice>;
 }
 
@@ -165,7 +165,7 @@ export interface ModuleDeviceStatusPayload {
   };
 }
 
-export interface ClientLoginPayload {
+export interface LoginResult {
   code: LoginResultCode;
   user?: User;
 }
@@ -182,6 +182,11 @@ export interface SetDevicePayload {
 export interface UpdateDevicePayload {
   operation: string;
   deviceOrId: BaseDevice | number;
+}
+
+export interface ClientLoginPayload {
+  credentials: LoginCredentials;
+  id: string;
 }
 
 export interface LoginCredentials {
