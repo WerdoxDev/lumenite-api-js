@@ -42,7 +42,7 @@ export class Gateway {
       this.mqttClient = getMqttImpl().connect(mqttOptions);
 
       this.mqttClient.on("connect", async () => {
-        this.mqttClient.publish(`client/${this.id}/login`, stringJson(this._loginCredentials));
+        this.mqttClient.publish(`client/${this.id}/login`, stringJson([this._loginCredentials, this.id]));
         const result = await this.defaultSubscribe();
         if (result !== GatewayStatus.Success) resolve(result);
         resolve(GatewayStatus.Success);
@@ -67,13 +67,11 @@ export class Gateway {
         resolve(GatewayStatus.InternalError);
       }, 2500);
       this.mqttClient.on("message", (topic, message) => {
-        // console.log(topic + ": " + message.toString());
+        console.log(topic + ": " + message.toString() + "\n");
         if (checkTopic(topic, "server/connect")) {
-          this.mqttClient.publish(`client/${this.id}/login`, stringJson(this._loginCredentials));
+          this.mqttClient.publish(`client/${this.id}/login`, stringJson([this._loginCredentials, this.id]));
         } else if (checkTopic(topic, "server/offline")) {
           // Add later
-        } else if (checkTopic(topic, "client/login-finished", 1)) {
-          const payload: ClientLoginPayload = parseJson(message.toString());
         } else if (checkTopic(topic, "client/initialize", 1)) {
           const payload: ClientInitializePayload = parseJson(message.toString());
           this.initialize(payload);
@@ -98,11 +96,12 @@ export class Gateway {
   }
 
   private initialize(payload: ClientInitializePayload) {
+    if (payload.result.code === LoginResultCode.WrongCredentials || payload.result.code === LoginResultCode.InternalError) return;
     const devices: Array<BaseDeviceClass> = [];
     payload.devices.forEach((x) => {
       devices.push(deviceClassFromInterface(x, this.mqttClient));
     });
-    this.client.user = payload.user;
+    if (payload.result.user) this.client.user = payload.result.user;
     this.client.user.modulesTokens.forEach((x) => {
       this.mqttClient.subscribe(`module/${x}/execute-client-command`);
       this.mqttClient.subscribe(`module/${x}/device-settings-changed`);
@@ -148,8 +147,8 @@ export class Gateway {
 }
 
 export interface ClientInitializePayload {
+  result: ClientLoginPayload;
   devices: Array<BaseDevice>;
-  user: User;
 }
 
 export interface ModuleDeviceSettingsPayload {
@@ -167,7 +166,7 @@ export interface ModuleDeviceStatusPayload {
 }
 
 export interface ClientLoginPayload {
-  result: LoginResult;
+  code: LoginResultCode;
   user?: User;
 }
 
@@ -205,7 +204,7 @@ export enum GatewayStatus {
   InternalError = "INTERNAL_ERROR",
 }
 
-export enum LoginResult {
+export enum LoginResultCode {
   Success = "SUCCESS",
   WrongCredentials = "WRONG_CREDENTIALS",
   InternalError = "INTERNAL_ERROR",

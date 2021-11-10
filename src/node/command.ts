@@ -340,8 +340,8 @@ export async function showPrompt(): Promise<void> {
   const protocol = answers.find((x) => x.name === "protocol")?.result || "mqtt";
   const gatewayUsername = answers.find((x) => x.name === "gateway_username")?.result;
   const gatewayPassword = answers.find((x) => x.name === "gateway_password")?.result;
-  const accountUsernameOrEmail = answers.find((x) => x.name === "account_username_or_email")?.result;
-  const accountPassword = answers.find((x) => x.name === "account_password")?.result;
+  const accountUsernameOrEmail = answers.find((x) => x.name === "account_username_or_email")?.result || "";
+  const accountPassword = answers.find((x) => x.name === "account_password")?.result || "";
   const options: GatewayOptions = { url, protocol: protocol as Protocol, username: gatewayUsername, password: gatewayPassword };
   client = new Client(options);
   output.write(chalk.cyan.bold("\nConnecting..."));
