@@ -186,8 +186,7 @@ export interface UpdateDevicePayload {
 }
 
 export interface LoginCredentials {
-  username?: string;
-  email?: string;
+  usernameOrEmail: string;
   password: string;
 }
 

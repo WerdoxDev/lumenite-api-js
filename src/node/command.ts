@@ -60,13 +60,23 @@ const questions: QuestionCollection = [
   },
   {
     type: "input",
-    name: "username",
-    message: "What's the Username?",
+    name: "gateway_username",
+    message: "What's the Gateway Username?",
   },
   {
     type: "input",
-    name: "password",
-    message: "What's the Password?",
+    name: "gateway_password",
+    message: "What's the Gateway Password?",
+  },
+  {
+    type: "input",
+    name: "account_username_or_email",
+    message: "What's the Account Username or Email?",
+  },
+  {
+    type: "input",
+    name: "account_password",
+    message: "What's the Account Password?",
   },
 ];
 
@@ -328,12 +338,14 @@ export async function showPrompt(): Promise<void> {
   output.write(chalk.yellow.bold("\nInitializing..."));
   const url = answers.find((x) => x.name === "url")?.result || "";
   const protocol = answers.find((x) => x.name === "protocol")?.result || "mqtt";
-  const username = answers.find((x) => x.name === "username")?.result;
-  const password = answers.find((x) => x.name === "password")?.result;
-  const options: GatewayOptions = { url, protocol: protocol as Protocol, username, password };
+  const gatewayUsername = answers.find((x) => x.name === "gateway_username")?.result;
+  const gatewayPassword = answers.find((x) => x.name === "gateway_password")?.result;
+  const accountUsernameOrEmail = answers.find((x) => x.name === "account_username_or_email")?.result;
+  const accountPassword = answers.find((x) => x.name === "account_password")?.result;
+  const options: GatewayOptions = { url, protocol: protocol as Protocol, username: gatewayUsername, password: gatewayPassword };
   client = new Client(options);
   output.write(chalk.cyan.bold("\nConnecting..."));
-  const result = await client.login();
+  const result = await client.login({ usernameOrEmail: accountUsernameOrEmail, password: accountPassword });
   if (result !== GatewayStatus.Success) {
     output.write(chalk.red.bold("\nFailed to connect"));
     return;
