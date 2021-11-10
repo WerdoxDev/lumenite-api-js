@@ -1,5 +1,5 @@
 import { RgbLightDeviceClass } from "../classes";
-import { Client, GatewayOptions, GatewayStatus } from "../index.node";
+import { Client, GatewayOptions, ResultCode } from "../index.node";
 import { getRandomInt } from "../util";
 
 (async () => {
@@ -10,8 +10,8 @@ import { getRandomInt } from "../util";
   };
 
   const client: Client = new Client(options);
-  const result = await client.login({ usernameOrEmail: "Werdox", password: "matin1385 " });
-  if (result !== GatewayStatus.Success) return;
+  const result = await client.login({ usernameOrEmail: "matin.tat85@gmail.com", password: "matin1385" });
+  if (result !== ResultCode.Success) return;
 
   setInterval(() => {
     client.deviceById<RgbLightDeviceClass>(9028).setColor(getRandomInt(2) * 255, getRandomInt(2) * 255, getRandomInt(2) * 255);

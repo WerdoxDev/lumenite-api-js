@@ -2,7 +2,7 @@ import chalk from "chalk";
 import readline, { Key } from "readline";
 import { cursor, erase, stripAnsi } from "./ansi";
 import MuteStream from "mute-stream";
-import { Client, GatewayOptions, Protocol, GatewayStatus, RgbLightDeviceClass } from "../core";
+import { Client, GatewayOptions, Protocol, ResultCode, RgbLightDeviceClass } from "../core";
 import { addToString, buildCommand, removeFromString, stringJson } from "../util";
 
 let currentPrompt: Prompt | undefined;
@@ -242,13 +242,13 @@ input.on("keypress", (str: string, key: Key) => {
       cursorX--;
       output.write(cursor.left(1));
     } else if (key.name === "right") {
-      if (currentPrompt) {
+      if (currentPrompt && currentPrompt.type === "input") {
         if (cursorX + 1 > promptLength + currentPrompt.currentLine.length) return;
       } else if (cursorX + 1 > commandLine.length) return;
       cursorX++;
       output.write(cursor.right(1));
     } else if (key.name === "backspace") {
-      if (currentPrompt) {
+      if (currentPrompt && currentPrompt.type === "input") {
         if (cursorX - 1 < promptLength) return;
         currentPrompt.currentLine = removeFromString(currentPrompt.currentLine, cursorX - promptLength);
         cursorX--;
@@ -263,14 +263,14 @@ input.on("keypress", (str: string, key: Key) => {
       }
     } else if (key.name === "home") {
       //? Whats the mamad? This
-      if (currentPrompt) {
+      if (currentPrompt && currentPrompt.type === "input") {
         output.write(cursor.left(currentPrompt.currentLine.substring(0, cursorX - promptLength).length));
       } else {
         output.write(cursor.left(commandLine.length));
       }
       cursorX = promptLength;
     } else if (key.name === "end") {
-      if (currentPrompt) {
+      if (currentPrompt && currentPrompt.type === "input") {
         output.write(cursor.right(currentPrompt.currentLine.substring(cursorX - promptLength, currentPrompt.currentLine.length).length));
         cursorX = promptLength + currentPrompt.currentLine.length;
       } else {
@@ -278,7 +278,7 @@ input.on("keypress", (str: string, key: Key) => {
         cursorX = commandLine.length;
       }
     } else if (str && str !== "\r") {
-      if (currentPrompt) {
+      if (currentPrompt && currentPrompt.type === "input") {
         currentPrompt.currentLine = addToString(currentPrompt.currentLine, cursorX - promptLength, str.replace("\r", ""));
         cursorX++;
         const subStringLine = currentPrompt.currentLine.substring(cursorX - promptLength, currentPrompt.currentLine.length);
@@ -346,7 +346,7 @@ export async function showPrompt(): Promise<void> {
   client = new Client(options);
   output.write(chalk.cyan.bold("\nConnecting..."));
   const result = await client.login({ usernameOrEmail: accountUsernameOrEmail, password: accountPassword });
-  if (result !== GatewayStatus.Success) {
+  if (result !== ResultCode.Success) {
     output.write(chalk.red.bold("\nFailed to connect"));
     return;
   }

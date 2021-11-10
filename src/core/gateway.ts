@@ -14,7 +14,7 @@ export class Gateway {
     this.client = client;
   }
 
-  async connect(loginCredentials: LoginCredentials, options: GatewayOptions): Promise<GatewayStatus> {
+  async connect(loginCredentials: LoginCredentials, options: GatewayOptions): Promise<ResultCode> {
     const mqttOptions = {
       hostname: options.protocol === "wss" || options.protocol === "ws" ? options.url : undefined,
       host: options.protocol === "mqtts" || options.protocol === "mqtt" ? options.url : undefined,
@@ -35,26 +35,25 @@ export class Gateway {
     this._loginCredentials = loginCredentials;
 
     let timeout: NodeJS.Timeout;
-    const result = await new Promise<GatewayStatus>((resolve) => {
+    const result = await new Promise<ResultCode>((resolve) => {
       timeout = setTimeout(() => {
-        resolve(GatewayStatus.Timeout);
+        resolve(ResultCode.Timeout);
       }, this.timeoutTime);
       this.mqttClient = getMqttImpl().connect(mqttOptions);
 
       this.mqttClient.on("connect", async () => {
         this.mqttClient.publish(`client/${this.id}/login`, stringJson([this._loginCredentials, this.id]));
         const result = await this.defaultSubscribe();
-        if (result !== GatewayStatus.Success) resolve(result);
-        resolve(GatewayStatus.Success);
+        resolve(result);
       });
       this.mqttClient.on("error", () => {
-        resolve(GatewayStatus.Failed);
+        resolve(ResultCode.InternalError);
       });
     }).finally(() => clearTimeout(timeout));
     return result;
   }
 
-  private async defaultSubscribe(): Promise<GatewayStatus> {
+  private async defaultSubscribe(): Promise<ResultCode> {
     this.mqttClient.subscribe(`client/${this.id}/login-finished`);
     this.mqttClient.subscribe(`client/${this.id}/set-connected`);
     this.mqttClient.subscribe(`client/${this.id}/initialize`);
@@ -62,9 +61,9 @@ export class Gateway {
     this.mqttClient.subscribe("server/offline");
 
     let timeout: NodeJS.Timeout;
-    const result = await new Promise<GatewayStatus>((resolve) => {
+    const result = await new Promise<ResultCode>((resolve) => {
       timeout = setTimeout(() => {
-        resolve(GatewayStatus.InternalError);
+        resolve(ResultCode.InternalError);
       }, 2500);
       this.mqttClient.on("message", (topic, message) => {
         console.log(topic + ": " + message.toString() + "\n");
@@ -74,14 +73,15 @@ export class Gateway {
           // Add later
         } else if (checkTopic(topic, "client/initialize", 1)) {
           const payload: ClientInitializePayload = parseJson(message.toString());
-          this.initialize(payload);
+          const result = this.initialize(payload);
+          if (result) resolve(result);
         } else if (checkTopic(topic, "client/set-connected", 1)) {
           const payload: ClientSetConnectedPayload = parseJson(message.toString());
           this.setConnected(payload);
         } else if (checkTopic(topic, "module/client/set-devices", 1, 3)) {
           const payload: ClientSetDevicesPayload = parseJson(message.toString());
           this.setDevices(payload);
-          resolve(GatewayStatus.Success);
+          resolve(ResultCode.Success);
         } else if (checkTopic(topic, "module/client/update-device", 1)) {
           const payload: UpdateDevicePayload = parseJson(message.toString());
           this.updateDevice(payload);
@@ -96,7 +96,7 @@ export class Gateway {
   }
 
   private initialize(payload: ClientInitializePayload) {
-    if (payload.result.code === LoginResultCode.WrongCredentials || payload.result.code === LoginResultCode.InternalError) return;
+    if (payload.result.code === ResultCode.WrongCredentials || payload.result.code === ResultCode.InternalError) return payload.result.code;
     const devices: Array<BaseDeviceClass> = [];
     payload.devices.forEach((x) => {
       devices.push(deviceClassFromInterface(x, this.mqttClient));
@@ -166,7 +166,7 @@ export interface ModuleDeviceStatusPayload {
 }
 
 export interface LoginResult {
-  code: LoginResultCode;
+  code: ResultCode;
   user?: User;
 }
 
@@ -202,15 +202,9 @@ export interface User {
   modulesTokens: Array<string>;
 }
 
-export enum GatewayStatus {
-  Success = "SUCCESS",
-  Timeout = "TIMEOUT",
-  Failed = "FAILED",
-  InternalError = "INTERNAL_ERROR",
-}
-
-export enum LoginResultCode {
+export enum ResultCode {
   Success = "SUCCESS",
   WrongCredentials = "WRONG_CREDENTIALS",
+  Timeout = "TIMEOUT",
   InternalError = "INTERNAL_ERROR",
 }

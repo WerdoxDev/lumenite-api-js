@@ -1,6 +1,6 @@
 import { BaseDevice, BaseDeviceClass } from "../classes";
 import { stringJson } from "../util";
-import { LoginCredentials, Gateway, GatewayStatus, UpdateDevicePayload, User } from "./gateway";
+import { LoginCredentials, Gateway, ResultCode, UpdateDevicePayload, User } from "./gateway";
 
 export class Client {
   private _devices: Array<BaseDeviceClass> = [];
@@ -15,7 +15,7 @@ export class Client {
     this.options = options;
   }
 
-  async login(loginCredentials: LoginCredentials): Promise<GatewayStatus> {
+  async login(loginCredentials: LoginCredentials): Promise<ResultCode> {
     this.gateway = new Gateway(this);
     const result = await this.gateway.connect(loginCredentials, this.options);
     return result;
