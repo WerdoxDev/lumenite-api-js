@@ -1,6 +1,6 @@
 import { getMqttImpl } from "./impl";
 import { BaseDevice, BaseDeviceClass, Command, DeviceStatus, DeviceType, OutputSettings } from "../classes";
-import { Client, ClientConfiguration, GatewayOptions } from "./index";
+import { Client, GatewayOptions } from "./index";
 import { checkTopic, deviceClassFromInterface, emptyStatus, getRandomId, parseJson, stringJson } from "../util";
 
 export class Gateway {
@@ -8,12 +8,13 @@ export class Gateway {
   public readonly id = getRandomId();
   private readonly client: Client;
   public mqttClient: import("mqtt").MqttClient;
+  private _loginCredentials: LoginCredentials;
 
   constructor(client: Client) {
     this.client = client;
   }
 
-  async connect(options: GatewayOptions): Promise<GatewayStatus> {
+  async connect(loginCredentials: LoginCredentials, options: GatewayOptions): Promise<GatewayStatus> {
     const mqttOptions = {
       hostname: options.protocol === "wss" || options.protocol === "ws" ? options.url : undefined,
       host: options.protocol === "mqtts" || options.protocol === "mqtt" ? options.url : undefined,
@@ -31,15 +32,17 @@ export class Gateway {
       },
     };
 
+    this._loginCredentials = loginCredentials;
+
     let timeout: NodeJS.Timeout;
     const result = await new Promise<GatewayStatus>((resolve) => {
       timeout = setTimeout(() => {
         resolve(GatewayStatus.Timeout);
       }, this.timeoutTime);
       this.mqttClient = getMqttImpl().connect(mqttOptions);
-      // else this.mqttClient = mqttNode.connect(mqttOptions);
+
       this.mqttClient.on("connect", async () => {
-        this.mqttClient.publish(`client/connect`, this.id);
+        this.mqttClient.publish(`client/${this.id}/login`, stringJson(this._loginCredentials));
         const result = await this.defaultSubscribe();
         if (result !== GatewayStatus.Success) resolve(result);
         resolve(GatewayStatus.Success);
@@ -52,6 +55,7 @@ export class Gateway {
   }
 
   private async defaultSubscribe(): Promise<GatewayStatus> {
+    this.mqttClient.subscribe(`client/${this.id}/login-finished`);
     this.mqttClient.subscribe(`client/${this.id}/set-connected`);
     this.mqttClient.subscribe(`client/${this.id}/initialize`);
     this.mqttClient.subscribe("server/connect");
@@ -65,9 +69,11 @@ export class Gateway {
       this.mqttClient.on("message", (topic, message) => {
         // console.log(topic + ": " + message.toString());
         if (checkTopic(topic, "server/connect")) {
-          this.mqttClient.publish("client/connect", this.id);
+          this.mqttClient.publish(`client/${this.id}/login`, stringJson(this._loginCredentials));
         } else if (checkTopic(topic, "server/offline")) {
           // Add later
+        } else if (checkTopic(topic, "client/login-finished", 1)) {
+          const payload: ClientLoginPayload = parseJson(message.toString());
         } else if (checkTopic(topic, "client/initialize", 1)) {
           const payload: ClientInitializePayload = parseJson(message.toString());
           this.initialize(payload);
@@ -81,16 +87,11 @@ export class Gateway {
         } else if (checkTopic(topic, "module/client/update-device", 1)) {
           const payload: UpdateDevicePayload = parseJson(message.toString());
           this.updateDevice(payload);
-          resolve(GatewayStatus.Success);
         } else if (checkTopic(topic, "module/execute-client-command", 1)) {
           const command: Command = parseJson(message.toString());
           const device = this.client.devices.find((x) => x.id === command.deviceId);
           if (device) device.executeCommand(command);
         }
-        // } else if (checkTopic(topic, "server/module/update-device", 2)) {
-        //   const payload: UpdateDevicePayload = parseJson(message.toString());
-        //   this.updateDevice(payload);
-        // }
       });
     }).finally(() => clearTimeout(timeout));
     return result;
@@ -101,8 +102,8 @@ export class Gateway {
     payload.devices.forEach((x) => {
       devices.push(deviceClassFromInterface(x, this.mqttClient));
     });
-    this.client.config = payload.config;
-    this.client.config.registeredModuleTokens.forEach((x) => {
+    this.client.user = payload.user;
+    this.client.user.modulesTokens.forEach((x) => {
       this.mqttClient.subscribe(`module/${x}/execute-client-command`);
       this.mqttClient.subscribe(`module/${x}/device-settings-changed`);
       this.mqttClient.subscribe(`module/${x}/client/${this.id}/set-devices`);
@@ -110,7 +111,6 @@ export class Gateway {
       this.mqttClient.subscribe(`module/${x}/client/update-device`);
     });
     this.mqttClient.publish(`client/${this.id}/initialize-finished`, "");
-    console.log(devices[0].name);
     this.client.devices = devices;
   }
 
@@ -135,7 +135,6 @@ export class Gateway {
 
   private setDevices(payload: ClientSetDevicesPayload) {
     const devices = [...this.client.devices];
-    console.log(payload);
     devices.forEach((x) => {
       const index = payload.findIndex((y) => y.id === x.id);
       x.status = {
@@ -148,15 +147,9 @@ export class Gateway {
   }
 }
 
-export interface ChangeDeviceStatusPayload {
-  id: number;
-  type: DeviceType;
-  status: DeviceStatus;
-}
-
 export interface ClientInitializePayload {
   devices: Array<BaseDevice>;
-  config: ClientConfiguration;
+  user: User;
 }
 
 export interface ModuleDeviceSettingsPayload {
@@ -173,6 +166,11 @@ export interface ModuleDeviceStatusPayload {
   };
 }
 
+export interface ClientLoginPayload {
+  result: LoginResult;
+  user?: User;
+}
+
 export type ClientSetConnectedPayload = Array<number>;
 
 export type ClientSetDevicesPayload = Array<SetDevicePayload>;
@@ -187,9 +185,29 @@ export interface UpdateDevicePayload {
   deviceOrId: BaseDevice | number;
 }
 
+export interface LoginCredentials {
+  username?: string;
+  email?: string;
+  password: string;
+}
+
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  password: string;
+  modulesTokens: Array<string>;
+}
+
 export enum GatewayStatus {
   Success = "SUCCESS",
   Timeout = "TIMEOUT",
   Failed = "FAILED",
+  InternalError = "INTERNAL_ERROR",
+}
+
+export enum LoginResult {
+  Success = "SUCCESS",
+  WrongCredentials = "WRONG_CREDENTIALS",
   InternalError = "INTERNAL_ERROR",
 }

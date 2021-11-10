@@ -1,6 +1,6 @@
 import { BaseDevice, BaseDeviceClass } from "../classes";
 import { stringJson } from "../util";
-import { Gateway, GatewayStatus, UpdateDevicePayload } from "./gateway";
+import { LoginCredentials, Gateway, GatewayStatus, UpdateDevicePayload, User } from "./gateway";
 
 export class Client {
   private _devices: Array<BaseDeviceClass> = [];
@@ -8,16 +8,16 @@ export class Client {
   public connectedModules: number;
   public connectedClients: number;
   public totalModules: number;
-  private _config: ClientConfiguration;
   public gateway: Gateway;
+  public user: User;
 
   constructor(options: GatewayOptions) {
     this.options = options;
   }
 
-  async login(): Promise<GatewayStatus> {
+  async login(loginCredentials: LoginCredentials): Promise<GatewayStatus> {
     this.gateway = new Gateway(this);
-    const result = await this.gateway.connect(this.options);
+    const result = await this.gateway.connect(loginCredentials, this.options);
     return result;
   }
 
@@ -30,15 +30,6 @@ export class Client {
 
   get devices(): Array<BaseDeviceClass> {
     return this._devices;
-  }
-
-  set config(value: ClientConfiguration) {
-    this._config = value;
-    this.totalModules = this._config.registeredModuleTokens.length;
-  }
-
-  get config(): ClientConfiguration {
-    return this._config;
   }
 
   deviceById<T extends BaseDeviceClass>(id: number): T {
@@ -77,10 +68,6 @@ export interface GatewayOptions {
 }
 
 export type Protocol = "ws" | "wss" | "mqtt" | "mqtts";
-
-export interface ClientConfiguration {
-  registeredModuleTokens: Array<string>;
-}
 
 export * from "../util";
 export * from "../classes";
