@@ -1,6 +1,6 @@
 {
   "name": "lumenite-api-js",
-  "version": "2.9.3",
+  "version": "2.10.0",
   "description": "an api/helper for working with lumenite-core",
   "main": "dist/cjs/index.node.js",
   "module": "dist/mjs/index.browser.js",
