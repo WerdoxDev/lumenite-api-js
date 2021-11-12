@@ -115,7 +115,7 @@ export class Gateway {
       this.mqttClient.subscribe(`module/${x}/client/update-device`);
     });
     this.mqttClient.publish(`client/${this.id}/initialize-finished`, "");
-    this.client.totalModules = this.client.user.modulesTokens.length;
+    this.client.totalModules = this.client.user?.modulesTokens.length;
     this.client.devices = devices;
   }
 
