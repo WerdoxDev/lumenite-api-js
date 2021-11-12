@@ -8,7 +8,7 @@ export class Client {
   public connectedModules?: number;
   public connectedClients?: number;
   public totalModules?: number;
-  public gateway: Gateway;
+  public gateway?: Gateway;
   public user?: User;
 
   constructor(options: GatewayOptions) {
@@ -22,7 +22,7 @@ export class Client {
   }
 
   disconnect(): void {
-    this.gateway.disconnect();
+    this.gateway?.disconnect();
     this.devices.splice(0, this.devices.length);
     this.user = undefined;
     this.connectedClients = undefined;
@@ -47,6 +47,7 @@ export class Client {
   }
 
   addDevice(device: BaseDevice): void {
+    if (!this.gateway) return;
     this.gateway.mqttClient.publish(
       `client/${this.gateway.id}/update-device`,
       stringJson({ operation: "add", deviceOrId: device } as UpdateDevicePayload)
@@ -54,6 +55,7 @@ export class Client {
   }
 
   updateDevice(device: BaseDevice): void {
+    if (!this.gateway) return;
     this.gateway.mqttClient.publish(
       `client/${this.gateway.id}/update-device`,
       stringJson({ operation: "update", deviceOrId: device } as UpdateDevicePayload)
@@ -61,6 +63,7 @@ export class Client {
   }
 
   removeDevice(id: number): void {
+    if (!this.gateway) return;
     this.gateway.mqttClient.publish(
       `client/${this.gateway.id}/update-device`,
       stringJson({ operation: "delete", deviceOrId: id } as UpdateDevicePayload)

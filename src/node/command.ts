@@ -221,6 +221,7 @@ function render() {
   cursorOffset = 0;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function debug(text: string): void {
   output.write(cursor.up(1) + erase.line + text + cursor.down(1) + cursor.left(text.length));
 }
@@ -319,7 +320,7 @@ input.on("keypress", (str: string, key: Key) => {
         // lcd_text 0 0 hello
         if (command.length < 4) return;
         const cmd = buildCommand(11, 10, [command[1], command[2], command.slice(3, command.length).join(" ")]);
-        client.gateway.mqttClient.publish(`module/${client.deviceById(0).config.moduleToken}/execute-command`, stringJson(cmd));
+        client.gateway?.mqttClient.publish(`module/${client.deviceById(0).config.moduleToken}/execute-command`, stringJson(cmd));
       } else if (command[0] === "current_power") {
         if (command.length < 2) return;
         console.log(client.deviceById(Number(command[1])).status?.currentStatus);
