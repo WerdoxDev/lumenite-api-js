@@ -11,6 +11,7 @@ import { getRandomInt } from "../util";
 
   const client: Client = new Client(options);
   const result = await client.login({ usernameOrEmail: "matin.tat85@gmail.com", password: "matin1385" });
+  console.log(result);
   if (result !== ResultCode.Success) return;
 
   setInterval(() => {

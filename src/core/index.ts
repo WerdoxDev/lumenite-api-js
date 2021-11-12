@@ -21,6 +21,16 @@ export class Client {
     return result;
   }
 
+  disconnect(): void {
+    this.gateway.disconnect();
+    this.devices.splice(0, this.devices.length);
+    this.user = undefined;
+    this.connectedClients = undefined;
+    this.connectedModules = undefined;
+    this.totalModules = undefined;
+    this.gateway = undefined;
+  }
+
   set devices(value: Array<BaseDeviceClass>) {
     this.devices.splice(0, this.devices.length);
     value.forEach((x) => {

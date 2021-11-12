@@ -4,7 +4,7 @@ import { Client, GatewayOptions } from "./index";
 import { checkTopic, deviceClassFromInterface, emptyStatus, getRandomId, parseJson, stringJson } from "../util";
 
 export class Gateway {
-  private readonly timeoutTime = 5000;
+  private readonly timeoutTime = 10000;
   public readonly id = getRandomId();
   private readonly client: Client;
   public mqttClient: import("mqtt").MqttClient;
@@ -53,6 +53,10 @@ export class Gateway {
     return result;
   }
 
+  disconnect(): void {
+    this.mqttClient?.publish("client/offline", this.id);
+  }
+
   private async defaultSubscribe(): Promise<ResultCode> {
     this.mqttClient.subscribe(`client/${this.id}/login-finished`);
     this.mqttClient.subscribe(`client/${this.id}/set-connected`);
@@ -63,8 +67,9 @@ export class Gateway {
     let timeout: NodeJS.Timeout;
     const result = await new Promise<ResultCode>((resolve) => {
       timeout = setTimeout(() => {
+        console.log("Timeout");
         resolve(ResultCode.InternalError);
-      }, 2500);
+      }, this.timeoutTime);
       this.mqttClient.on("message", (topic, message) => {
         console.log(topic + ": " + message.toString() + "\n");
         if (checkTopic(topic, "server/connect")) {
