@@ -107,7 +107,7 @@ export class Gateway {
       devices.push(deviceClassFromInterface(x, this.mqttClient));
     });
     if (payload.result.user) this.client.user = payload.result.user;
-    this.client.user.modulesTokens.forEach((x) => {
+    this.client.user?.modulesTokens.forEach((x) => {
       this.mqttClient.subscribe(`module/${x}/execute-client-command`);
       this.mqttClient.subscribe(`module/${x}/device-settings-changed`);
       this.mqttClient.subscribe(`module/${x}/client/${this.id}/set-devices`);

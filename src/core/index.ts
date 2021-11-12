@@ -5,11 +5,11 @@ import { LoginCredentials, Gateway, ResultCode, UpdateDevicePayload, User } from
 export class Client {
   private _devices: Array<BaseDeviceClass> = [];
   public options: GatewayOptions;
-  public connectedModules: number;
-  public connectedClients: number;
-  public totalModules: number;
+  public connectedModules?: number;
+  public connectedClients?: number;
+  public totalModules?: number;
   public gateway: Gateway;
-  public user: User;
+  public user?: User;
 
   constructor(options: GatewayOptions) {
     this.options = options;
@@ -28,7 +28,6 @@ export class Client {
     this.connectedClients = undefined;
     this.connectedModules = undefined;
     this.totalModules = undefined;
-    this.gateway = undefined;
   }
 
   set devices(value: Array<BaseDeviceClass>) {
