@@ -83,10 +83,10 @@ export class Gateway {
         } else if (checkTopic(topic, "client/set-connected", 1)) {
           const payload: ClientSetConnectedPayload = parseJson(message.toString());
           this.setConnected(payload);
+          resolve(ResultCode.Success);
         } else if (checkTopic(topic, "module/client/set-devices", 1, 3)) {
           const payload: ClientSetDevicesPayload = parseJson(message.toString());
           this.setDevices(payload);
-          resolve(ResultCode.Success);
         } else if (checkTopic(topic, "module/client/update-device", 1)) {
           const payload: UpdateDevicePayload = parseJson(message.toString());
           this.updateDevice(payload);
